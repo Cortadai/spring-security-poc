@@ -5,6 +5,7 @@ import com.entelgy.bank.exceptionhandling.CustomBasicAuthenticationEntryPoint;
 import com.entelgy.bank.filter.CsrfCookieFilter;
 import com.entelgy.bank.filter.JWTTokenGeneratorFilter;
 import com.entelgy.bank.filter.JWTTokenValidatorFilter;
+import com.entelgy.bank.repository.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -32,12 +33,13 @@ import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER;
 
 @Configuration
 @AllArgsConstructor
-public class BankSecurityConfig {
+public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
+    private final BankUserDetailsService bankUserDetailsService;
 
     @Bean
-    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, TokenRepository tokenRepository) throws Exception {
         CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
         http.cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
             @Override
@@ -55,21 +57,25 @@ public class BankSecurityConfig {
         http.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.csrf(csrfConfig -> csrfConfig
                 .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
-                .ignoringRequestMatchers("/contact", "/register", "/apiLogin")
+                .ignoringRequestMatchers("/contact", "/register", "/apiLogin", "/apiLogout", "/refresh")
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
         // devolver el token CSRF solo tras una autenticación exitosa
         http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
         // emitir el JWT tras una autenticación exitosa, para que el cliente pueda usarlo en peticiones posteriores
         http.addFilterAfter(new JWTTokenGeneratorFilter(tokenProvider), BasicAuthenticationFilter.class);
         // validar tokens antes de que cualquier otro mecanismo (como basic auth) entre en acción
-        http.addFilterBefore(new JWTTokenValidatorFilter(tokenProvider), BasicAuthenticationFilter.class);
-        http.requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()); // Only HTTP
+        http.addFilterBefore(
+                new JWTTokenValidatorFilter(tokenProvider, tokenRepository, bankUserDetailsService),
+                BasicAuthenticationFilter.class
+        );        http.requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()); // Only HTTP
         http.authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/myAccount").hasRole("USER") // we don't use prefix ROLE_USER, only USER
                 .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/myLoans").hasRole("USER")
                 .requestMatchers("/myCards").hasRole("USER")
                 .requestMatchers("/user").authenticated()
+                .requestMatchers("/apiLogout").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/refresh").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/notices", "/contact", "/register", "/apiLogin").permitAll()
         );
         http.formLogin(flc -> flc.disable());

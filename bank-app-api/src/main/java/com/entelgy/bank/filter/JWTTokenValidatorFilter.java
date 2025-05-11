@@ -1,6 +1,8 @@
 package com.entelgy.bank.filter;
 
+import com.entelgy.bank.config.BankUserDetailsService;
 import com.entelgy.bank.config.TokenProvider;
+import com.entelgy.bank.repository.TokenRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,8 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -22,6 +24,8 @@ import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER;
 public class JWTTokenValidatorFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
+    private final TokenRepository tokenRepository;
+    private final BankUserDetailsService bankUserDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -30,16 +34,28 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
         String jwt = request.getHeader(JWT_HEADER);
         if (jwt != null) {
             try{
-                tokenProvider.validateToken(jwt);
+                // Paso 1 - Firma y expiracion
+                if (!tokenProvider.validateToken(jwt)) {
+                    throw new BadCredentialsException("Token inválido o expirado.");
+                }
+                // Paso 2: Validar blacklist
+                if (tokenRepository.isAccessTokenBlacklisted(jwt)) {
+                    throw new BadCredentialsException("Token en blacklist.");
+                }
+                // Paso 3: Verificar que coincide con el almacenado
                 Claims claims = tokenProvider.parseToken(jwt);
                 String username = String.valueOf(claims.get("username"));
-                String authorities = String.valueOf(claims.get("authorities"));
+                String storedToken = tokenRepository.getAccessToken(username);
+                if (storedToken == null || !storedToken.equals(jwt)) {
+                    throw new BadCredentialsException("Token no coincide con el almacenado.");
+                }
+                // Paso 4: Ha ido bien, guardamos en el contexto
+                UserDetails userDetails = bankUserDetailsService.loadUserByUsername(username);
                 Authentication authentication = new UsernamePasswordAuthenticationToken(
-                        username, null,
-                        AuthorityUtils.commaSeparatedStringToAuthorityList(authorities));
+                        userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
-                throw new BadCredentialsException("Invalid JWT token received");
+                throw new BadCredentialsException("Fallo en la validación del token: %s".formatted(e.getMessage()));
             }
         }
         filterChain.doFilter(request, response);

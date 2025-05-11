@@ -4,6 +4,7 @@ import com.entelgy.bank.dto.TokenPair;
 import com.entelgy.bank.model.Customer;
 import com.entelgy.bank.model.LoginRequest;
 import com.entelgy.bank.model.LoginResponse;
+import com.entelgy.bank.model.RefreshRequest;
 import com.entelgy.bank.repository.CustomerRepository;
 import com.entelgy.bank.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +62,17 @@ public class UserController {
                 .header(JWT_HEADER_REFRESH, tokenPair.getRefreshToken())
                 .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(),
                         tokenPair.getAccessToken(), tokenPair.getRefreshToken()));
+    }
+
+    @PostMapping("/apiLogout")
+    public ResponseEntity<String> apiLogout() {
+        authService.logout();
+        return ResponseEntity.status(HttpStatus.OK).body("Logout successful");
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> apiRefreshToken(@RequestBody RefreshRequest refreshRequest) {
+        return authService.refreshToken(refreshRequest);
     }
 
 }

@@ -139,7 +139,7 @@
 								"exec": [
 									"pm.request.headers.add({\r",
 									"    key: 'Authorization',\r",
-									"    value: pm.collectionVariables.get(\"jwt\") || \"eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYW5rIiwic3ViIjoiSldUIFRva2VuIiwidXNlcm5hbWUiOiJhbGFuQHR1cmluZy5jb20iLCJhdXRob3JpdGllcyI6IlJPTEVfQURNSU4sUk9MRV9VU0VSIiwiaWF0IjoxNzQ2OTUxNTYzLCJleHAiOjE3NDY5ODE1NjN9.tQb_KVezrwQNYIMy2YPtVwGg4G9jPxXOfAPRCj9k-Xc\"\r",
+									"    value: pm.collectionVariables.get(\"accessToken\") || \"eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYW5rIiwic3ViIjoiSldUIFRva2VuIiwidXNlcm5hbWUiOiJhbGFuQHR1cmluZy5jb20iLCJhdXRob3JpdGllcyI6IlJPTEVfQURNSU4sUk9MRV9VU0VSIiwiaWF0IjoxNzQ2OTUxNTYzLCJleHAiOjE3NDY5ODE1NjN9.tQb_KVezrwQNYIMy2YPtVwGg4G9jPxXOfAPRCj9k-Xc\"\r",
 									"});"
 								]
 							}
@@ -192,18 +192,16 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"// Captura el token JWT de la cabecera 'Authorization' y lo guarda como variable de colección\r",
-											"let token = pm.response.headers.get(\"Authorization\");\r",
+											"let response = pm.response.json();\r",
 											"\r",
-											"if (token) {\r",
-											"    // Elimina el prefijo 'Bearer ' si existe\r",
-											"    if (token.startsWith(\"Bearer \")) {\r",
-											"        token = token.substring(7);\r",
-											"    }\r",
-											"    pm.collectionVariables.set(\"jwt\", token);\r",
-											"    console.log(\"Token JWT guardado en variable 'jwt':\", token);\r",
+											"if (response.accessToken && response.refreshToken) {\r",
+											"    pm.collectionVariables.set(\"accessToken\", response.accessToken);\r",
+											"    pm.collectionVariables.set(\"refreshToken\", response.refreshToken);\r",
+											"\r",
+											"    console.log(\"Access Token guardado como 'accessToken':\", response.accessToken);\r",
+											"    console.log(\"Refresh Token guardado como 'refreshToken':\", response.refreshToken);\r",
 											"} else {\r",
-											"    console.warn(\"No se encontró la cabecera Authorization en la respuesta.\");\r",
+											"    console.warn(\"No se encontraron accessToken o refreshToken en la respuesta.\");\r",
 											"}\r",
 											""
 										],
@@ -231,6 +229,110 @@
 									"raw": "/apiLogin",
 									"path": [
 										"apiLogin"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "apiLogout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.request.headers.add({\r",
+											"    key: 'Authorization',\r",
+											"    value: pm.collectionVariables.get(\"accessToken\") || \"eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYW5rIiwic3ViIjoiSldUIFRva2VuIiwidXNlcm5hbWUiOiJhbGFuQHR1cmluZy5jb20iLCJhdXRob3JpdGllcyI6IlJPTEVfQURNSU4sUk9MRV9VU0VSIiwiaWF0IjoxNzQ2OTUxNTYzLCJleHAiOjE3NDY5ODE1NjN9.tQb_KVezrwQNYIMy2YPtVwGg4G9jPxXOfAPRCj9k-Xc\"\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "/apiLogout",
+									"path": [
+										"apiLogout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "refresh",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();\r",
+											"\r",
+											"if (response.accessToken && response.refreshToken) {\r",
+											"    pm.collectionVariables.set(\"accessToken\", response.accessToken);\r",
+											"    pm.collectionVariables.set(\"refreshToken\", response.refreshToken);\r",
+											"\r",
+											"    console.log(\"Access Token guardado como 'accessToken':\", response.accessToken);\r",
+											"    console.log(\"Refresh Token guardado como 'refreshToken':\", response.refreshToken);\r",
+											"} else {\r",
+											"    console.warn(\"No se encontraron accessToken o refreshToken en la respuesta.\");\r",
+											"}\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.request.headers.add({\r",
+											"    key: 'Authorization',\r",
+											"    value: pm.collectionVariables.get(\"accessToken\") || \"eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYW5rIiwic3ViIjoiSldUIFRva2VuIiwidXNlcm5hbWUiOiJhbGFuQHR1cmluZy5jb20iLCJhdXRob3JpdGllcyI6IlJPTEVfQURNSU4sUk9MRV9VU0VSIiwiaWF0IjoxNzQ2OTUxNTYzLCJleHAiOjE3NDY5ODE1NjN9.tQb_KVezrwQNYIMy2YPtVwGg4G9jPxXOfAPRCj9k-Xc\"\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"refreshToken\":\"{{refreshToken}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "/refresh",
+									"path": [
+										"refresh"
 									]
 								}
 							},
@@ -332,8 +434,13 @@
 	],
 	"variable": [
 		{
-			"key": "jwt",
+			"key": "accessToken",
 			"value": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYW5rIiwic3ViIjoiSldUIFRva2VuIiwidXNlcm5hbWUiOiJhbGFuQHR1cmluZy5jb20iLCJhdXRob3JpdGllcyI6IlJPTEVfQURNSU4sUk9MRV9VU0VSIiwiaWF0IjoxNzQ2OTUxNTYzLCJleHAiOjE3NDY5ODE1NjN9.tQb_KVezrwQNYIMy2YPtVwGg4G9jPxXOfAPRCj9k-Xc",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJlbnRlbGd5LmNvbSIsInN1YiI6ImFsYW5AdHVyaW5nLmNvbSIsImlhdCI6MTc0Njk4NTM0Niwic2NvcGUiOiJyZWZyZXNoIiwiZXhwIjoxNzQ3NTkwMTQ2fQ.Gb1dGyyCgQA26Is4HByjSg_i-Y9WJwMk-IL9amFzidM",
 			"type": "string"
 		}
 	]

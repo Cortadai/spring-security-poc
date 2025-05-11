@@ -37,16 +37,17 @@ public class TokenProvider {
 
     public TokenPair generateTokenPair(Authentication authentication) {
         String accessToken = generateAccessToken(authentication);
-        String refreshToken = generateRefreshToken();
+        String refreshToken = generateRefreshToken(authentication);
         return new TokenPair(accessToken, refreshToken);
     }
 
-    public void validateToken(String token) {
+    public boolean validateToken(String token) {
         try {
             Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
                     .parseSignedClaims(token);
+            return true;
         } catch (SignatureException e) {
             log.error("Invalid JWT signature: {}", e.getMessage());
         } catch (MalformedJwtException e) {
@@ -58,6 +59,7 @@ public class TokenProvider {
         } catch (IllegalArgumentException e) {
             log.error("JWT claims string is empty: {}", e.getMessage());
         }
+        return false;
     }
 
     public Claims parseToken(String token) {
@@ -68,28 +70,29 @@ public class TokenProvider {
                 .getPayload();
     }
 
-    private String generateAccessToken(Authentication authentication) {
+    public String generateAccessToken(Authentication authentication) {
         Map<String, Object> accessTokenClaims = new HashMap<>();
         accessTokenClaims.put("username", authentication.getName());
         accessTokenClaims.put("authorities", authentication.getAuthorities()
                         .stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining(",")));
-        return generateToken(jwtExpirationMs, accessTokenClaims);
+        return generateToken(JWT_SUBJECT, jwtExpirationMs, accessTokenClaims);
     }
 
-    private String generateRefreshToken() {
+    private String generateRefreshToken(Authentication authentication) {
+        String subject = authentication.getName();
         Map<String, Object> claims = new HashMap<>();
         claims.put("scope", "refresh");
-        return generateToken(refreshExpirationMs, claims);
+        return generateToken(subject, refreshExpirationMs, claims);
     }
 
-    private String generateToken(long expirationMs, Map<String, Object> claims) {
+    private String generateToken(String subject, long expirationMs, Map<String, Object> claims) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
         JwtBuilder builder = Jwts.builder()
                 .issuer(issuer)
-                .subject(JWT_SUBJECT)
+                .subject(subject)
                 .issuedAt(now)
                 .claims(claims)
                 .expiration(expiryDate)
@@ -99,6 +102,10 @@ public class TokenProvider {
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public String getUsernameFromToken(String token) {
+        return parseToken(token).getSubject();
     }
 
 }
