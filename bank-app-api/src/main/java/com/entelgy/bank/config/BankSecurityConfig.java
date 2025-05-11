@@ -6,6 +6,7 @@ import com.entelgy.bank.filter.CsrfCookieFilter;
 import com.entelgy.bank.filter.JWTTokenGeneratorFilter;
 import com.entelgy.bank.filter.JWTTokenValidatorFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,10 +29,12 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER;
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
+@AllArgsConstructor
 public class BankSecurityConfig {
+
+    private final TokenProvider tokenProvider;
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -57,9 +60,9 @@ public class BankSecurityConfig {
         // devolver el token CSRF solo tras una autenticación exitosa
         http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
         // emitir el JWT tras una autenticación exitosa, para que el cliente pueda usarlo en peticiones posteriores
-        http.addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class);
+        http.addFilterAfter(new JWTTokenGeneratorFilter(tokenProvider), BasicAuthenticationFilter.class);
         // validar tokens antes de que cualquier otro mecanismo (como basic auth) entre en acción
-        http.addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class);
+        http.addFilterBefore(new JWTTokenValidatorFilter(tokenProvider), BasicAuthenticationFilter.class);
         http.requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()); // Only HTTP
         http.authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/myAccount").hasRole("USER") // we don't use prefix ROLE_USER, only USER
@@ -69,7 +72,7 @@ public class BankSecurityConfig {
                 .requestMatchers("/user").authenticated()
                 .requestMatchers("/notices", "/contact", "/register", "/apiLogin").permitAll()
         );
-        http.formLogin(withDefaults());
+        http.formLogin(flc -> flc.disable());
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         http.exceptionHandling(ehc-> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()));
         return http.build();

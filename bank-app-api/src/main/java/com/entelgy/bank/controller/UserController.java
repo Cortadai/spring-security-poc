@@ -1,32 +1,25 @@
 package com.entelgy.bank.controller;
 
+import com.entelgy.bank.dto.TokenPair;
 import com.entelgy.bank.model.Customer;
 import com.entelgy.bank.model.LoginRequest;
 import com.entelgy.bank.model.LoginResponse;
 import com.entelgy.bank.repository.CustomerRepository;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.entelgy.bank.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.sql.Date;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static com.entelgy.bank.constants.ApplicationConstants.*;
+import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER;
+import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER_REFRESH;
 
 
 @RestController
@@ -34,19 +27,14 @@ import static com.entelgy.bank.constants.ApplicationConstants.*;
 public class UserController {
 
     private final CustomerRepository customerRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
     private final Environment env;
+    private final AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody Customer customer) {
         try {
-            String hashPwd = passwordEncoder.encode(customer.getPassword());
-            customer.setPassword(hashPwd);
-            customer.setCreateDt(new Date(System.currentTimeMillis()));
-            Customer savedCustomer = customerRepository.save(customer);
-
-            if (savedCustomer.getId() > 0) {
+            boolean registered = authService.registerNewUser(customer);
+            if (registered) {
                 return ResponseEntity.status(HttpStatus.CREATED).
                         body("Given user details are successfully registered");
             } else {
@@ -67,30 +55,12 @@ public class UserController {
 
     @PostMapping("/apiLogin")
     public ResponseEntity<LoginResponse> apiLogin(@RequestBody LoginRequest loginRequest) {
-        String jwt = "";
-        Authentication authentication = UsernamePasswordAuthenticationToken
-                .unauthenticated(loginRequest.username(), loginRequest.password());
-        Authentication authenticationResponse = authenticationManager.authenticate(authentication);
-        if(authenticationResponse != null && authenticationResponse.isAuthenticated()) {
-            if (env != null) {
-                String secret = env.getProperty(JWT_SECRET_KEY, JWT_SECRET_DEFAULT_VALUE);
-                SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-                jwt = Jwts.builder()
-                        .issuer("Bank")
-                        .subject("JWT Token")
-                        .claim("username", authenticationResponse.getName())
-                        .claim("authorities", authenticationResponse.getAuthorities()
-                                .stream()
-                                .map(GrantedAuthority::getAuthority)
-                                .collect(Collectors.joining(",")))
-                        .issuedAt(new java.util.Date())
-                        .expiration(new java.util.Date((new java.util.Date()).getTime() + 30000000)) // 8h
-                        .signWith(secretKey).compact();
-            }
-        }
+        TokenPair tokenPair = authService.loginExistingUserAndGetTokenPair(loginRequest);
         return ResponseEntity.status(HttpStatus.OK)
-                .header(JWT_HEADER, jwt)
-                .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(), jwt));
+                .header(JWT_HEADER, tokenPair.getAccessToken())
+                .header(JWT_HEADER_REFRESH, tokenPair.getRefreshToken())
+                .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(),
+                        tokenPair.getAccessToken(), tokenPair.getRefreshToken()));
     }
 
 }

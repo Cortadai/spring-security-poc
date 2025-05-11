@@ -3,9 +3,7 @@ package com.entelgy.bank.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.sql.Date;
 import java.util.Set;
@@ -13,6 +11,8 @@ import java.util.Set;
 @Entity
 @Table(name = "customer")
 @Getter @Setter @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class Customer {
 
     @Id

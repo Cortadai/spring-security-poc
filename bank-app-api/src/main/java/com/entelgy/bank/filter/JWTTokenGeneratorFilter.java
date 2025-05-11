@@ -1,26 +1,25 @@
 package com.entelgy.bank.filter;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.entelgy.bank.config.TokenProvider;
+import com.entelgy.bank.dto.TokenPair;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.core.env.Environment;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.stream.Collectors;
 
-import static com.entelgy.bank.constants.ApplicationConstants.*;
+import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER;
+import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER_REFRESH;
 
+@RequiredArgsConstructor
 public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
+
+    private final TokenProvider tokenProvider;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -28,29 +27,16 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
-            Environment env = getEnvironment();
-            if (env != null) {
-                String secret = env.getProperty(JWT_SECRET_KEY, JWT_SECRET_DEFAULT_VALUE);
-                SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-                String jwt = Jwts.builder()
-                        .issuer("Bank")
-                        .subject("JWT Token")
-                        .claim("username", authentication.getName())
-                        .claim("authorities", authentication.getAuthorities()
-                                .stream()
-                                .map(GrantedAuthority::getAuthority)
-                                .collect(Collectors.joining(",")))
-                        .issuedAt(new Date())
-                        .expiration(new Date((new Date()).getTime() + 30000000)) // 8h
-                        .signWith(secretKey).compact();
-                response.setHeader(JWT_HEADER, jwt);
-            }
+            TokenPair tokenPair = tokenProvider.generateTokenPair(authentication);
+            response.setHeader(JWT_HEADER, tokenPair.getAccessToken());
+            response.setHeader(JWT_HEADER_REFRESH, tokenPair.getRefreshToken());
         }
         filterChain.doFilter(request, response);
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        // Solo ejecutar si la ruta es exactamente /user. Para cualquier otra ruta, no hacer nada
         return !request.getServletPath().equals("/user");
     }
 
