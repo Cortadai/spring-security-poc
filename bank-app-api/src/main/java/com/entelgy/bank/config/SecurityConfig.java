@@ -1,7 +1,7 @@
 package com.entelgy.bank.config;
 
-import com.entelgy.bank.exceptionhandling.CustomAccessDeniedHandler;
-import com.entelgy.bank.exceptionhandling.CustomBasicAuthenticationEntryPoint;
+import com.entelgy.bank.exception.handler.CustomAccessDeniedHandler;
+import com.entelgy.bank.exception.entrypoint.CustomBasicAuthenticationEntryPoint;
 import com.entelgy.bank.filter.CsrfCookieFilter;
 import com.entelgy.bank.filter.JWTTokenGeneratorFilter;
 import com.entelgy.bank.filter.JWTTokenValidatorFilter;
@@ -62,7 +62,7 @@ public class SecurityConfig {
         // devolver el token CSRF solo tras una autenticación exitosa
         http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
         // emitir el JWT tras una autenticación exitosa, para que el cliente pueda usarlo en peticiones posteriores
-        http.addFilterAfter(new JWTTokenGeneratorFilter(tokenProvider), BasicAuthenticationFilter.class);
+        http.addFilterAfter(new JWTTokenGeneratorFilter(tokenProvider, tokenRepository), BasicAuthenticationFilter.class);
         // validar tokens antes de que cualquier otro mecanismo (como basic auth) entre en acción
         http.addFilterBefore(
                 new JWTTokenValidatorFilter(tokenProvider, tokenRepository, bankUserDetailsService),

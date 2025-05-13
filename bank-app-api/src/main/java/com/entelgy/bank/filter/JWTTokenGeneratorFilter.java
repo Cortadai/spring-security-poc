@@ -2,6 +2,7 @@ package com.entelgy.bank.filter;
 
 import com.entelgy.bank.config.TokenProvider;
 import com.entelgy.bank.dto.TokenPair;
+import com.entelgy.bank.repository.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER_REFRESH
 public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
 
     private final TokenProvider tokenProvider;
+    private final TokenRepository tokenRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -28,6 +30,10 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             TokenPair tokenPair = tokenProvider.generateTokenPair(authentication);
+            if (!tokenPair.getAccessToken().isEmpty() && !tokenPair.getRefreshToken().isEmpty()) {
+                tokenRepository.removeAllTokens(authentication.getName());
+                tokenRepository.storeTokens(authentication.getName(), tokenPair.getAccessToken(),tokenPair.getRefreshToken());
+            }
             response.setHeader(JWT_HEADER, tokenPair.getAccessToken());
             response.setHeader(JWT_HEADER_REFRESH, tokenPair.getRefreshToken());
         }

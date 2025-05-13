@@ -3,6 +3,9 @@ package com.entelgy.bank.service;
 import com.entelgy.bank.config.BankUserDetailsService;
 import com.entelgy.bank.config.TokenProvider;
 import com.entelgy.bank.dto.TokenPair;
+import com.entelgy.bank.exception.InvalidTokenException;
+import com.entelgy.bank.exception.TokenBlacklistedException;
+import com.entelgy.bank.exception.TokenMismatchException;
 import com.entelgy.bank.model.Customer;
 import com.entelgy.bank.model.LoginRequest;
 import com.entelgy.bank.model.LoginResponse;
@@ -10,6 +13,7 @@ import com.entelgy.bank.model.RefreshRequest;
 import com.entelgy.bank.repository.CustomerRepository;
 import com.entelgy.bank.repository.TokenRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +29,7 @@ import java.sql.Date;
 import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER;
 import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER_REFRESH;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -40,6 +45,7 @@ public class AuthService {
         // Verifica si ya existe un usuario con ese email
         customerRepository.findByEmail(customer.getEmail())
                 .ifPresent(user -> {
+                    log.error("User already exists for email: {}", customer.getEmail());
                     throw new RuntimeException("User already exists");
                 });
         // Cifra la contraseña y guarda el cliente
@@ -67,45 +73,52 @@ public class AuthService {
 
     public void logout() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        log.info("Attempting to logOut  for user: {}", userDetails.getUsername());
         tokenRepository.removeAllTokens(userDetails.getUsername());
         SecurityContextHolder.clearContext();
     }
 
     public ResponseEntity<?> refreshToken(RefreshRequest refreshRequest) {
         String oldRefreshToken = refreshRequest.refreshToken();
+        String username = tokenProvider.getUsernameFromToken(oldRefreshToken);
+        log.info("Refreshing TokenPair for user: {}", username);
 
         // 1- Validar token
-        if(!tokenProvider.validateToken(oldRefreshToken)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid refresh token");
+        log.info("Validating refresh token for user: {}", username);
+        if (!tokenProvider.validateToken(oldRefreshToken)) {
+            throw new InvalidTokenException("Refresh token is invalid or expired");
         }
 
-        if(tokenRepository.isRefreshTokenBlacklisted(oldRefreshToken)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("ERROR: refresh token is blacklisted");
+        // 2- Validar blacklist
+        log.info("Checking if refresh token is blacklisted for user: {}", username);
+        if (tokenRepository.isRefreshTokenBlacklisted(oldRefreshToken)) {
+            throw new TokenBlacklistedException("Refresh token is blacklisted");
         }
 
-        String username = tokenProvider.getUsernameFromToken(oldRefreshToken);
+        // 3- Validar si coincide con el token almacenado
+        log.info("Checking if refresh token is in DB for user: {}", username);
         String storedRefreshToken = tokenRepository.getRefreshToken(username);
-        if(storedRefreshToken == null || !storedRefreshToken.equals(oldRefreshToken)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("ERROR: Invalid refresh token");
+        if (storedRefreshToken == null || !storedRefreshToken.equals(oldRefreshToken)) {
+            throw new TokenMismatchException("Refresh token does not match stored token");
         }
 
-        // 2- Invalidar oldRefreshToken y access token anteriores
+        // 4- Invalidar tokens anteriores
+        log.info("Remove all current tokens for user: {}", username);
         tokenRepository.removeAllTokens(username);
 
-        // 3- Generar nuevos tokens
+        // 5- Generar nuevos tokens
+        log.info("Generating new tokens for user: {}", username);
         UserDetails userDetails = bankUserDetailsService.loadUserByUsername(username);
         Authentication authentication =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
         TokenPair newTokenPair = tokenProvider.generateTokenPair(authentication);
 
-        // 4- Guardar nuevos tokens
+        // 6- Guardar nuevos tokens
+        log.info("Storing new tokens in DB for user: {}", username);
         tokenRepository.storeTokens(username, newTokenPair.getAccessToken(), newTokenPair.getRefreshToken());
 
-        // 5- Devolver los nuevos tokens
+        // 7- Devolver nuevos tokens
+        log.info("Returning new tokens for user: {}", username);
         return ResponseEntity.status(HttpStatus.OK)
                 .header(JWT_HEADER, newTokenPair.getAccessToken())
                 .header(JWT_HEADER_REFRESH, newTokenPair.getRefreshToken())

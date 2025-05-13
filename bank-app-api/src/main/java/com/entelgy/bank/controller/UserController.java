@@ -8,6 +8,7 @@ import com.entelgy.bank.model.RefreshRequest;
 import com.entelgy.bank.repository.CustomerRepository;
 import com.entelgy.bank.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ import java.util.Optional;
 import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER;
 import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER_REFRESH;
 
-
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class UserController {
@@ -36,6 +37,7 @@ public class UserController {
         try {
             boolean registered = authService.registerNewUser(customer);
             if (registered) {
+                log.info("User registered successfully for email: {}", customer.getEmail());
                 return ResponseEntity.status(HttpStatus.CREATED).
                         body("Given user details are successfully registered");
             } else {
@@ -43,6 +45,7 @@ public class UserController {
                         body("User registration failed");
             }
         } catch (Exception ex) {
+            log.error("An exception occurred: {}", ex.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
                     body("An exception occurred: " + ex.getMessage());
         }
@@ -50,12 +53,14 @@ public class UserController {
 
     @RequestMapping("/user")
     public Customer getUserDetailsAfterLogin(Authentication authentication) {
+        log.info("Attempting to logIn via BasicAuth for user: {}", authentication.getName());
         Optional<Customer> optionalCustomer = customerRepository.findByEmail(authentication.getName());
         return optionalCustomer.orElse(null);
     }
 
     @PostMapping("/apiLogin")
     public ResponseEntity<LoginResponse> apiLogin(@RequestBody LoginRequest loginRequest) {
+        log.info("Attempting to logIn via API for user: {}", loginRequest.username());
         TokenPair tokenPair = authService.loginExistingUserAndGetTokenPair(loginRequest);
         return ResponseEntity.status(HttpStatus.OK)
                 .header(JWT_HEADER, tokenPair.getAccessToken())

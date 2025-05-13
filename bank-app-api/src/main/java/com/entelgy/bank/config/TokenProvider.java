@@ -36,6 +36,7 @@ public class TokenProvider {
     private long refreshExpirationMs;
 
     public TokenPair generateTokenPair(Authentication authentication) {
+        log.info("Begin of generateTokenPair");
         String accessToken = generateAccessToken(authentication);
         String refreshToken = generateRefreshToken(authentication);
         return new TokenPair(accessToken, refreshToken);
@@ -47,6 +48,7 @@ public class TokenProvider {
                     .verifyWith(getSigningKey())
                     .build()
                     .parseSignedClaims(token);
+            log.info("Token is valid");
             return true;
         } catch (SignatureException e) {
             log.error("Invalid JWT signature: {}", e.getMessage());
@@ -59,6 +61,7 @@ public class TokenProvider {
         } catch (IllegalArgumentException e) {
             log.error("JWT claims string is empty: {}", e.getMessage());
         }
+        log.info("Token is invalid");
         return false;
     }
 
@@ -77,6 +80,7 @@ public class TokenProvider {
                         .stream()
                         .map(GrantedAuthority::getAuthority)
                         .collect(Collectors.joining(",")));
+        log.info("Access Token Generated");
         return generateToken(JWT_SUBJECT, jwtExpirationMs, accessTokenClaims);
     }
 
@@ -84,6 +88,7 @@ public class TokenProvider {
         String subject = authentication.getName();
         Map<String, Object> claims = new HashMap<>();
         claims.put("scope", "refresh");
+        log.info("Refresh Token Generated");
         return generateToken(subject, refreshExpirationMs, claims);
     }
 

@@ -36,18 +36,18 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
             try{
                 // Paso 1 - Firma y expiracion
                 if (!tokenProvider.validateToken(jwt)) {
-                    throw new BadCredentialsException("Token inválido o expirado.");
+                    throw new BadCredentialsException("Token is invalid or expired");
                 }
                 // Paso 2: Validar blacklist
                 if (tokenRepository.isAccessTokenBlacklisted(jwt)) {
-                    throw new BadCredentialsException("Token en blacklist.");
+                    throw new BadCredentialsException("Token blacklisted");
                 }
                 // Paso 3: Verificar que coincide con el almacenado
                 Claims claims = tokenProvider.parseToken(jwt);
                 String username = String.valueOf(claims.get("username"));
                 String storedToken = tokenRepository.getAccessToken(username);
                 if (storedToken == null || !storedToken.equals(jwt)) {
-                    throw new BadCredentialsException("Token no coincide con el almacenado.");
+                    throw new BadCredentialsException("Token not valid in DB");
                 }
                 // Paso 4: Ha ido bien, guardamos en el contexto
                 UserDetails userDetails = bankUserDetailsService.loadUserByUsername(username);
@@ -55,7 +55,7 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
                         userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
-                throw new BadCredentialsException("Fallo en la validación del token: %s".formatted(e.getMessage()));
+                throw new BadCredentialsException("Token validation failed: " + e.getMessage());
             }
         }
         filterChain.doFilter(request, response);
