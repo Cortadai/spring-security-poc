@@ -7,10 +7,10 @@ Este repositorio contiene una prueba de concepto (PoC) compuesta por dos proyect
 
 ## 📂 Subproyectos
 
-### 💻 [bank-app-ui](bank-app-ui/README.md)
+### 💻 [bank-app-ui](bank-app-ui/readme.md)
 Interfaz de usuario desarrollada en Angular. Incluye login, protección CSRF, almacenamiento seguro de tokens y renovación automática del JWT.
 
-### 🛠️ [bank-app-api](bank-app-api/README.md)
+### 🛠️ [bank-app-api](bank-app-api/readme.md)
 API REST desarrollada en Spring Boot. Gestiona autenticación, generación y refresco de tokens JWT, protección CSRF y control centralizado de tokens en Redis.
 
 ---
