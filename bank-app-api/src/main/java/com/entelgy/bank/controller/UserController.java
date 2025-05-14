@@ -9,7 +9,6 @@ import com.entelgy.bank.repository.CustomerRepository;
 import com.entelgy.bank.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -29,7 +28,6 @@ import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER_REFRESH
 public class UserController {
 
     private final CustomerRepository customerRepository;
-    private final Environment env;
     private final AuthService authService;
 
     @PostMapping("/register")

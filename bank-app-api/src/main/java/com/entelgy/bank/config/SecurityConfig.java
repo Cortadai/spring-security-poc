@@ -29,8 +29,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER;
-import static com.entelgy.bank.constants.ApplicationConstants.JWT_HEADER_REFRESH;
+import static com.entelgy.bank.constants.ApplicationConstants.*;
 
 @Configuration
 @AllArgsConstructor
@@ -50,7 +49,7 @@ public class SecurityConfig {
                 config.setAllowedMethods(Collections.singletonList("*"));
                 config.setAllowCredentials(true);
                 config.setAllowedHeaders(Collections.singletonList("*"));
-                config.setExposedHeaders(Arrays.asList(JWT_HEADER, JWT_HEADER_REFRESH));
+                config.setExposedHeaders(Arrays.asList(JWT_HEADER, JWT_HEADER_REFRESH, XIDSESSION));
                 config.setMaxAge(3600L);
                 return config;
             }
@@ -77,7 +76,8 @@ public class SecurityConfig {
                 .requestMatchers("/user").authenticated()
                 .requestMatchers("/apiLogout").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/refresh").hasAnyRole("USER", "ADMIN")
-                .requestMatchers("/notices", "/contact", "/register", "/apiLogin").permitAll()
+                .requestMatchers("/notices", "/contact", "/register", "/apiLogin",
+                        "/fin-login").permitAll()
         );
         http.formLogin(flc -> flc.disable());
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
