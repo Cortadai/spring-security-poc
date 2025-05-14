@@ -9,5 +9,6 @@ export const  AppConstants = {
     LOANS_API_URL : "/myLoans",
     CARDS_API_URL : "/myCards",
     NOTICES_API_URL : "/notices",
-    FIN_LOGIN_URL : "/fin-login"
+    FIN_LOGIN_URL : "/fin-login",
+    USER_INFO_URL : "/userinfo"
 }

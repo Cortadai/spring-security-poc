@@ -1,6 +1,7 @@
 package com.entelgy.securitymiddleware.controller;
 
 import com.entelgy.securitymiddleware.config.TokenProvider;
+import com.entelgy.securitymiddleware.service.SecurityInfoService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -21,6 +23,7 @@ import java.util.Map;
 public class Login1EndController {
 
     private final TokenProvider tokenProvider;
+    private final SecurityInfoService securityInfoService;
 
     @GetMapping("/login1End")
     public void login1End(HttpServletRequest request, HttpServletResponse response) {
@@ -64,10 +67,12 @@ public class Login1EndController {
         }
 
         // Paso 6: Generar token de sesión
+        List<String> roles = securityInfoService.getRolesForUser(idusuario, idaplicacion);
         Map<String, Object> sessionClaims = new HashMap<>();
         sessionClaims.put("idaplicacion", idaplicacion);
         sessionClaims.put("idsession", idsession);
         sessionClaims.put("scope", "session");
+        sessionClaims.put("roles", roles);
         sessionClaims.put("refreshToken", true);
         String jwtSesion = tokenProvider.generateTemporalToken(idusuario, 3600_000, sessionClaims);
 

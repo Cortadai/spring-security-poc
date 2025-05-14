@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { User } from 'src/app/model/user.model';
+import {UserDto} from "../../model/userdto.model";
 
 @Component({
   selector: 'app-dashboard',
@@ -8,15 +9,15 @@ import { User } from 'src/app/model/user.model';
 })
 export class DashboardComponent implements OnInit {
 
-  user = new User();
+  userDto = new UserDto();
 
   constructor() {
-    
+
   }
 
   ngOnInit() {
     if(sessionStorage.getItem('userdetails')){
-      this.user = JSON.parse(sessionStorage.getItem('userdetails') || "");
+      this.userDto = JSON.parse(sessionStorage.getItem('userdetails') || "");
     }
   }
 

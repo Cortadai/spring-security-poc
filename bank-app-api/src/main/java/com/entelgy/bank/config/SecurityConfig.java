@@ -1,10 +1,11 @@
 package com.entelgy.bank.config;
 
-import com.entelgy.bank.exception.handler.CustomAccessDeniedHandler;
 import com.entelgy.bank.exception.entrypoint.CustomBasicAuthenticationEntryPoint;
+import com.entelgy.bank.exception.handler.CustomAccessDeniedHandler;
 import com.entelgy.bank.filter.CsrfCookieFilter;
 import com.entelgy.bank.filter.JWTTokenGeneratorFilter;
 import com.entelgy.bank.filter.JWTTokenValidatorFilter;
+import com.entelgy.bank.filter.JwtCookieAuthenticationFilter;
 import com.entelgy.bank.repository.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
@@ -68,6 +69,10 @@ public class SecurityConfig {
                 new JWTTokenValidatorFilter(tokenProvider, tokenRepository, bankUserDetailsService),
                 BasicAuthenticationFilter.class
         );        http.requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()); // Only HTTP
+        http.addFilterBefore(
+                new JwtCookieAuthenticationFilter(tokenProvider), // <- este es el nuevo filtro
+                JWTTokenValidatorFilter.class                 // se ejecuta justo antes de validar Bearer
+        );
         http.authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/myAccount").hasRole("USER") // we don't use prefix ROLE_USER, only USER
                 .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
@@ -77,7 +82,7 @@ public class SecurityConfig {
                 .requestMatchers("/apiLogout").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/refresh").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/notices", "/contact", "/register", "/apiLogin",
-                        "/fin-login").permitAll()
+                        "/fin-login", "/userinfo").permitAll()
         );
         http.formLogin(flc -> flc.disable());
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
