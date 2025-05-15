@@ -1,6 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {AuthService} from "./services/auth/auth.service";
-import {NewAuthService} from "./services/newAuth/newAuth.service";
+import {AuthService} from "./services/newAuth/auth.service";
 import {Router} from "@angular/router";
 import {NgxSpinnerService} from "ngx-spinner";
 import {SpinnerStateService} from "./services/spinnerState/spinner-state.service";
@@ -14,7 +13,7 @@ export class AppComponent implements OnInit{
   title = 'bank-app-ui';
   public spinnerMessage = '';
 
-  constructor(private newAuthService: NewAuthService,
+  constructor(private authService: AuthService,
               private router: Router,
               private spinner: NgxSpinnerService,
               private spinnerStateService: SpinnerStateService) {}
@@ -26,9 +25,9 @@ export class AppComponent implements OnInit{
 
     this.spinner.show();
 
-    this.newAuthService.finalizeLogin().subscribe({
+    this.authService.finalizeLogin().subscribe({
       next: () => {
-        this.newAuthService.obtenerClaims().subscribe({
+        this.authService.obtenerClaims().subscribe({
           next: () => {
             setTimeout(() => {
               this.spinner.hide();

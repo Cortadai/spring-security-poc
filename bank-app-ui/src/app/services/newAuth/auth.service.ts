@@ -3,13 +3,13 @@ import {HttpClient} from "@angular/common/http";
 import {map, mapTo, Observable} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {AppConstants} from "../../constants/app.constants";
-import {UserDto} from "../../model/userdto.model";
 import {tap} from "rxjs/operators";
+import {User} from "../../model/user.model";
 
 @Injectable({
   providedIn: 'root'
 })
-export class NewAuthService {
+export class AuthService {
 
   constructor(private http: HttpClient) {}
 
@@ -46,7 +46,7 @@ export class NewAuthService {
     );
   }
 
-  obtenerClaims(): Observable<UserDto> {
+  obtenerClaims(): Observable<User> {
     const idsession = sessionStorage.getItem("idsession");
     if (!idsession) {
       throw new Error("No se encontró idsession en sessionStorage");
@@ -65,7 +65,7 @@ export class NewAuthService {
         const sessionClaims = claims.session;
         const rawName = (sessionClaims.sub || '').split('@')[0] || '';
         const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
-        const userDto = new UserDto(
+        const user = new User(
           1,                                              // id (meto 1 a fuego para pruebas)
           formattedName,                                  // name (o username)
           '528963147',                                    // meto a fuego para pruegas
@@ -78,9 +78,9 @@ export class NewAuthService {
         );
 
         // Guardamos en sessionStorage
-        sessionStorage.setItem("userdetails", JSON.stringify(userDto));
+        sessionStorage.setItem("userdetails", JSON.stringify(user));
 
-        return userDto;
+        return user;
       })
     );
   }

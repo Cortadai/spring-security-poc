@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { User } from 'src/app/model/user.model';
-import {UserDto} from "../../model/userdto.model";
+import {User} from "../../model/user.model";
 import {UserSessionService} from "../../services/user/user-session.service";
 
 @Component({
@@ -10,15 +9,15 @@ import {UserSessionService} from "../../services/user/user-session.service";
 })
 export class DashboardComponent implements OnInit {
 
-  userDto = new UserDto();
+  user = new User();
 
   constructor(private userSession: UserSessionService) {
   }
 
   ngOnInit() {
-    const user = this.userSession.getUser();
-    if (user) {
-      this.userDto = user;
+    const userSession = this.userSession.getUserSession();
+    if (userSession) {
+      this.user = userSession;
     }
   }
 

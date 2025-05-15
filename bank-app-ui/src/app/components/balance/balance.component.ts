@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { User } from 'src/app/model/user.model';
 import { DashboardService } from '../../services/dashboard/dashboard.service';
-import {UserDto} from "../../model/userdto.model";
+import {User} from "../../model/user.model";
 import {UserSessionService} from "../../services/user/user-session.service";
 
 
@@ -12,19 +11,19 @@ import {UserSessionService} from "../../services/user/user-session.service";
 })
 export class BalanceComponent implements OnInit {
 
-  userDto = new UserDto();
+  user = new User();
   transactions = new Array();
 
   constructor(private dashboardService: DashboardService,
               private userSession: UserSessionService) { }
 
   ngOnInit(): void {
-    const user = this.userSession.getUser();
-    if (user) {
-      this.userDto = user;
+    const userSession = this.userSession.getUserSession();
+    if (userSession) {
+      this.user = userSession;
     }
-    if(this.userDto){
-      this.dashboardService.getAccountTransactions(this.userDto.id).subscribe(
+    if(this.user){
+      this.dashboardService.getAccountTransactions(this.user.id).subscribe(
         responseData => {
         this.transactions = <any> responseData.body;
         });

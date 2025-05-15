@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Cards } from 'src/app/model/cards.model';
-import { User } from 'src/app/model/user.model';
 import { DashboardService } from '../../services/dashboard/dashboard.service';
 import {UserSessionService} from "../../services/user/user-session.service";
-import {UserDto} from "../../model/userdto.model";
+import {User} from "../../model/user.model";
 
 
 @Component({
@@ -13,7 +12,7 @@ import {UserDto} from "../../model/userdto.model";
 })
 export class CardsComponent implements OnInit {
 
-  userDto = new UserDto();
+  user = new User();
   cards = new Array();
   currOutstandingAmt:number = 0;
 
@@ -21,12 +20,12 @@ export class CardsComponent implements OnInit {
               private userSession: UserSessionService) { }
 
   ngOnInit(): void {
-    const user = this.userSession.getUser();
-    if (user) {
-      this.userDto = user;
+    const userSession = this.userSession.getUserSession();
+    if (userSession) {
+      this.user = userSession;
     }
-    if(this.userDto){
-      this.dashboardService.getCardsDetails(this.userDto.id).subscribe(
+    if(this.user){
+      this.dashboardService.getCardsDetails(this.user.id).subscribe(
         responseData => {
         this.cards = <any> responseData.body;
         this.cards.forEach(function (this: CardsComponent, card: Cards) {

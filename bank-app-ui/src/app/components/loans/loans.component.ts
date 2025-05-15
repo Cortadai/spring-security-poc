@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Loans } from 'src/app/model/loans.model';
-import { User } from 'src/app/model/user.model';
 import { DashboardService } from '../../services/dashboard/dashboard.service';
 import {UserSessionService} from "../../services/user/user-session.service";
-import {UserDto} from "../../model/userdto.model";
+import {User} from "../../model/user.model";
 
 @Component({
   selector: 'app-loans',
@@ -12,7 +11,7 @@ import {UserDto} from "../../model/userdto.model";
 })
 export class LoansComponent implements OnInit {
 
-  userDto = new UserDto();
+  user = new User();
   loans = new Array();
   currOutstandingBalance: number = 0;
 
@@ -20,12 +19,12 @@ export class LoansComponent implements OnInit {
               private userSession: UserSessionService) { }
 
   ngOnInit(): void {
-    const user = this.userSession.getUser();
-    if (user) {
-      this.userDto = user;
+    const userSession = this.userSession.getUserSession();
+    if (userSession) {
+      this.user = userSession;
     }
-    if(this.userDto){
-      this.dashboardService.getLoansDetails(this.userDto.id).subscribe(
+    if(this.user){
+      this.dashboardService.getLoansDetails(this.user.id).subscribe(
         responseData => {
         this.loans = <any> responseData.body;
         this.loans.forEach(function (this: LoansComponent, loan: Loans) {

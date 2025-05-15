@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DashboardService } from '../../services/dashboard/dashboard.service';
-import { User } from 'src/app/model/user.model';
 import { Account } from 'src/app/model/account.model';
-import {UserDto} from "../../model/userdto.model";
+import {User} from "../../model/user.model";
 import {UserSessionService} from "../../services/user/user-session.service";
 
 @Component({
@@ -11,18 +10,18 @@ import {UserSessionService} from "../../services/user/user-session.service";
   styleUrls: ['./account.component.css']
 })
 export class AccountComponent implements OnInit {
-  userDto = new UserDto();
+  user = new User();
   account = new Account();
   constructor(private dashboardService: DashboardService,
               private userSession: UserSessionService) { }
 
   ngOnInit(): void {
-    const user = this.userSession.getUser();
-    if (user) {
-      this.userDto = user;
+    const userSession = this.userSession.getUserSession();
+    if (userSession) {
+      this.user = userSession;
     }
-    if(this.userDto){
-      this.dashboardService.getAccountDetails(this.userDto.id).subscribe(
+    if(this.user){
+      this.dashboardService.getAccountDetails(this.user.id).subscribe(
         responseData => {
         this.account = <any> responseData.body;
         });

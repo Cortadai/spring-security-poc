@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { User } from 'src/app/model/user.model';
-import {AuthService} from "../../services/auth/auth.service";
-import {NewAuthService} from "../../services/newAuth/newAuth.service";
+import {AuthService} from "../../services/newAuth/auth.service";
 import {NgxSpinnerService} from "ngx-spinner";
 import {SpinnerStateService} from "../../services/spinnerState/spinner-state.service";
 
@@ -13,10 +11,8 @@ import {SpinnerStateService} from "../../services/spinnerState/spinner-state.ser
 })
 export class LogoutComponent implements OnInit {
 
-  user = new User();
-
   constructor(private router : Router,
-              private newAuthService: NewAuthService,
+              private authService: AuthService,
               private spinner: NgxSpinnerService,
               private spinnerStateService: SpinnerStateService) {
   }
@@ -28,7 +24,7 @@ export class LogoutComponent implements OnInit {
     const idsession = sessionStorage.getItem("idsession");
 
     if (idsession) {
-      this.newAuthService.logout(idsession).subscribe({
+      this.authService.logout(idsession).subscribe({
         next: () => {
           // Esperamos al menos 1 segundo para que se vea el spinner
           setTimeout(() => {

@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
-import { UserDto } from 'src/app/model/userdto.model';
+import {User} from 'src/app/model/user.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserSessionService {
 
-  private get user(): UserDto | null {
+  private get userDetails(): User | null {
     const raw = sessionStorage.getItem("userdetails");
-    return raw ? JSON.parse(raw) as UserDto : null;
+    return raw ? JSON.parse(raw) as User : null;
   }
 
-  getUser(): UserDto | null {
-    return this.user;
+  getUserSession(): User | null {
+    return this.userDetails;
   }
 
 }
