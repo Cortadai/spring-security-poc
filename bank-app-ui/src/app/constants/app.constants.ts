@@ -10,6 +10,6 @@ export const  AppConstants = {
     CARDS_API_URL : "/myCards",
     NOTICES_API_URL : "/notices",
     FIN_LOGIN_URL : "/fin-login",
-    USER_INFO_URL : "/userinfo",
-    FIN_LOGOFF_URL : "/fin-logoff"
+    FIN_LOGOFF_URL : "/fin-logoff",
+    OBTENER_CLAIMS_URL : "/obtenerclaimsSPA"
 }

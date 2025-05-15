@@ -82,7 +82,7 @@ public class SecurityConfig {
                 .requestMatchers("/apiLogout").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/refresh").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/notices", "/contact", "/register", "/apiLogin",
-                        "/fin-login", "/userinfo", "/fin-logoff").permitAll()
+                        "/fin-login", "/fin-logoff","/obtenerclaimsSPA").permitAll()
         );
         http.formLogin(flc -> flc.disable());
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));

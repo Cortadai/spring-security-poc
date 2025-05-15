@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { User } from 'src/app/model/user.model';
+import {UserDto} from "../../model/userdto.model";
+import {UserSessionService} from "../../services/user/user-session.service";
 
 @Component({
   selector: 'app-header',
@@ -8,15 +10,15 @@ import { User } from 'src/app/model/user.model';
 })
 export class HeaderComponent implements OnInit {
 
-  user = new User();
+  userDto = new UserDto();
 
-  constructor() {
-
+  constructor(private userSession: UserSessionService) {
   }
 
   ngOnInit() {
-    if(sessionStorage.getItem('userdetails')){
-      this.user = JSON.parse(sessionStorage.getItem('userdetails')!);
+    const user = this.userSession.getUser();
+    if (user) {
+      this.userDto = user;
     }
   }
 

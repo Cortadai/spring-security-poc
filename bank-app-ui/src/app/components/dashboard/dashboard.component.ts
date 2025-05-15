@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { User } from 'src/app/model/user.model';
 import {UserDto} from "../../model/userdto.model";
+import {UserSessionService} from "../../services/user/user-session.service";
 
 @Component({
   selector: 'app-dashboard',
@@ -11,13 +12,13 @@ export class DashboardComponent implements OnInit {
 
   userDto = new UserDto();
 
-  constructor() {
-
+  constructor(private userSession: UserSessionService) {
   }
 
   ngOnInit() {
-    if(sessionStorage.getItem('userdetails')){
-      this.userDto = JSON.parse(sessionStorage.getItem('userdetails') || "");
+    const user = this.userSession.getUser();
+    if (user) {
+      this.userDto = user;
     }
   }
 

@@ -28,7 +28,7 @@ export class AppComponent implements OnInit{
 
     this.newAuthService.finalizeLogin().subscribe({
       next: () => {
-        this.newAuthService.cargarDatosUsuario().subscribe({
+        this.newAuthService.obtenerClaims().subscribe({
           next: () => {
             setTimeout(() => {
               this.spinner.hide();
