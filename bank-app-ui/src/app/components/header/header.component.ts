@@ -7,11 +7,11 @@ import { User } from 'src/app/model/user.model';
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent implements OnInit {
-  
+
   user = new User();
 
   constructor() {
-    
+
   }
 
   ngOnInit() {

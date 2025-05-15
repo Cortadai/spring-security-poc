@@ -36,7 +36,7 @@ public class SecurityConfig {
         http.csrf(csrfConfig -> csrfConfig.disable());
         http.authorizeHttpRequests((requests) -> requests
 //                .requestMatchers("/user").authenticated()
-                .requestMatchers("/loginBegin", "/login1End").permitAll()
+                .requestMatchers("/loginBegin", "/login1End", "/logoff1").permitAll()
         );
         http.formLogin(flc -> flc.disable());
         http.httpBasic(hbc -> hbc.disable());

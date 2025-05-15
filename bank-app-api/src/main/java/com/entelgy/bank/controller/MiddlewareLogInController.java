@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class MiddlewareController {
+public class MiddlewareLogInController {
 
     private final RestTemplate restTemplate = new RestTemplate();
 

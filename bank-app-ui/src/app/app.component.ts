@@ -3,6 +3,7 @@ import {AuthService} from "./services/auth/auth.service";
 import {NewAuthService} from "./services/newAuth/newAuth.service";
 import {Router} from "@angular/router";
 import {NgxSpinnerService} from "ngx-spinner";
+import {SpinnerStateService} from "./services/spinnerState/spinner-state.service";
 
 @Component({
   selector: 'app-root',
@@ -11,13 +12,18 @@ import {NgxSpinnerService} from "ngx-spinner";
 })
 export class AppComponent implements OnInit{
   title = 'bank-app-ui';
+  public spinnerMessage = '';
 
-  constructor(private authService: AuthService,
-              private newAuthService: NewAuthService,
+  constructor(private newAuthService: NewAuthService,
               private router: Router,
-              private spinner: NgxSpinnerService) {}
+              private spinner: NgxSpinnerService,
+              private spinnerStateService: SpinnerStateService) {}
 
   ngOnInit(): void {
+    this.spinnerStateService.message$.subscribe(msg => {
+      this.spinnerMessage = msg;
+    });
+
     this.spinner.show();
 
     this.newAuthService.finalizeLogin().subscribe({
