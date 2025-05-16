@@ -37,7 +37,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((requests) -> requests
 //                .requestMatchers("/user").authenticated()
                 .requestMatchers("/loginBegin", "/login1End", "/logoff1", "/obtenerclaims1",
-                        "/validartoken").permitAll()
+                        "/validartoken","/refresco1", "/expira1").permitAll()
         );
         http.formLogin(flc -> flc.disable());
         http.httpBasic(hbc -> hbc.disable());

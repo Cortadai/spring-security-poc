@@ -64,12 +64,6 @@ public class Logoff1Controller {
                 throw new RuntimeException("Token de sesión no válido");
             }
 
-            // 4. Desencriptar y validar token de acceso
-            String jwtAcceso = new String(Base64.getDecoder().decode(accessCookieValue));
-            if (!tokenProvider.validateToken(jwtAcceso)) {
-                throw new RuntimeException("Token de acceso no válido");
-            }
-
         } catch (Exception e) {
             log.warn("Error durante validación de tokens en logoff1: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

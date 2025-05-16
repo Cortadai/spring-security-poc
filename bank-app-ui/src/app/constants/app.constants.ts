@@ -11,5 +11,8 @@ export const  AppConstants = {
     NOTICES_API_URL : "/notices",
     FIN_LOGIN_URL : "/fin-login",
     FIN_LOGOFF_URL : "/fin-logoff",
-    OBTENER_CLAIMS_URL : "/obtenerclaimsSPA"
+    OBTENER_CLAIMS_URL : "/obtenerclaimsSPA",
+    EXPIRA_URL : "/expira1SPA",
+    REFRESCA_URL : "/refresco1SPA"
+
 }

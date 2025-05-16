@@ -1,8 +1,10 @@
 package com.entelgy.bank.filter;
 
-import jakarta.servlet.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -14,6 +16,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -24,14 +27,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JwtCookieAuthenticationFilter implements Filter {
+public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
 
     private final RestTemplate restTemplate;
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
 
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         // 1. Buscar la cookie Session-{idsession}
         String token = null;
@@ -53,6 +55,7 @@ public class JwtCookieAuthenticationFilter implements Filter {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
+            log.info("vamos a validar este token: " + token.substring(token.length() - 10));
             Map<String, String> body = Map.of("token", token);
             HttpEntity<Map<String, String>> validationRequest = new HttpEntity<>(body, headers);
 
@@ -70,6 +73,20 @@ public class JwtCookieAuthenticationFilter implements Filter {
             }
         }
         // 3. continuar la cadena de filtros
-        chain.doFilter(request, response);
+        filterChain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+        return List.of(
+                "/fin-login",
+                "/fin-logoff",
+                "/apiLogin",
+                "/notices",
+                "/contact",
+                "/register"
+        ).contains(path);
+    }
+
 }

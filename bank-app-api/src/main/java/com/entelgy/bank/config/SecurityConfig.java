@@ -51,7 +51,7 @@ public class SecurityConfig {
                 config.setAllowedMethods(Collections.singletonList("*"));
                 config.setAllowCredentials(true);
                 config.setAllowedHeaders(Collections.singletonList("*"));
-                config.setExposedHeaders(Arrays.asList(JWT_HEADER, JWT_HEADER_REFRESH, XIDSESSION));
+                config.setExposedHeaders(Arrays.asList(JWT_HEADER, JWT_HEADER_REFRESH, XIDSESSION, "X-Session-Expiring"));
                 config.setMaxAge(3600L);
                 return config;
             }
@@ -80,10 +80,16 @@ public class SecurityConfig {
                 .requestMatchers("/myLoans").hasRole("USER")
                 .requestMatchers("/myCards").hasRole("USER")
                 .requestMatchers("/user").authenticated()
+                .requestMatchers("/user").authenticated()
                 .requestMatchers("/apiLogout").hasAnyRole("USER", "ADMIN")
                 .requestMatchers("/refresh").hasAnyRole("USER", "ADMIN")
+                // las nuevas
+                .requestMatchers("/obtenerclaimsSPA").authenticated()
+                .requestMatchers("/refresco1SPA").authenticated()
+                .requestMatchers("/expira1SPA").authenticated()
                 .requestMatchers("/notices", "/contact", "/register", "/apiLogin",
-                        "/fin-login", "/fin-logoff","/obtenerclaimsSPA").permitAll()
+                        // las nuevas
+                        "/fin-login","/fin-logoff").permitAll()
         );
         http.formLogin(flc -> flc.disable());
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
