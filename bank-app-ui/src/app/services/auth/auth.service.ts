@@ -62,16 +62,16 @@ export class AuthService {
       }
     ).pipe(
       map(claims => {
-        const sessionClaims = claims.session;
-        const rawName = (sessionClaims.sub || '').split('@')[0] || '';
+        const accessClaims = claims.access;
+        const rawName = (accessClaims.sub || '').split('@')[0] || '';
         const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
         const user = new User(
           1,                                              // id (meto 1 a fuego para pruebas)
           formattedName,                                  // name (o username)
           '528963147',                                    // meto a fuego para pruegas
-          sessionClaims.sub || '',                        // email
+          accessClaims.sub || '',                        // email
           '',                                             // password
-          (sessionClaims.roles?.[0] || ''),               // role (primer rol, si hay varios)
+          (accessClaims.roles?.[0] || ''),               // role (primer rol, si hay varios)
           '',                                             // statusCd
           '',                                             // statusMsg
           'AUTH'                                          // authStatus

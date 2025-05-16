@@ -56,14 +56,14 @@ public class ObtenerClaims1Controller {
             // Desencriptar cookie de sesión: contiene session y refresh
             String decodedSession = new String(Base64.getDecoder().decode(sessionCookieValue));
             String[] sessionParts = decodedSession.split("::");
-            String jwtSesion = sessionParts[0];
+            String jwtSession = sessionParts[0];
             String jwtRefresh = sessionParts.length > 1 ? sessionParts[1] : null;
 
             // Desencriptar cookie de acceso
             String jwtAccess = new String(Base64.getDecoder().decode(accessCookieValue));
 
             // Validar tokens
-            if (!tokenProvider.validateToken(jwtSesion)) {
+            if (!tokenProvider.validateToken(jwtSession)) {
                 throw new RuntimeException("Token de sesión inválido");
             }
             if (jwtRefresh != null && !tokenProvider.validateToken(jwtRefresh)) {
@@ -74,7 +74,7 @@ public class ObtenerClaims1Controller {
             }
 
             // Extraer claims
-            Claims sessionClaims = tokenProvider.parseToken(jwtSesion);
+            Claims sessionClaims = tokenProvider.parseToken(jwtSession);
             Claims refreshClaims = jwtRefresh != null ? tokenProvider.parseToken(jwtRefresh) : null;
             Claims accessClaims = tokenProvider.parseToken(jwtAccess);
 

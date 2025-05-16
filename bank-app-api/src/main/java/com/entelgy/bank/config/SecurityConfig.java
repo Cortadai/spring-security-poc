@@ -38,6 +38,7 @@ public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
     private final BankUserDetailsService bankUserDetailsService;
+    private final JwtCookieAuthenticationFilter jwtCookieAuthenticationFilter;
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, TokenRepository tokenRepository) throws Exception {
@@ -70,7 +71,7 @@ public class SecurityConfig {
                 BasicAuthenticationFilter.class
         );        http.requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()); // Only HTTP
         http.addFilterBefore(
-                new JwtCookieAuthenticationFilter(tokenProvider), // <- este es el nuevo filtro
+                jwtCookieAuthenticationFilter, // <- este es el nuevo filtro
                 JWTTokenValidatorFilter.class                 // se ejecuta justo antes de validar Bearer
         );
         http.authorizeHttpRequests((requests) -> requests

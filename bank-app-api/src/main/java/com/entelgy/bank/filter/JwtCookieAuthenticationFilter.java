@@ -1,19 +1,24 @@
 package com.entelgy.bank.filter;
 
-import com.entelgy.bank.config.TokenProvider;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -21,48 +26,50 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JwtCookieAuthenticationFilter implements Filter {
 
-    private final TokenProvider tokenProvider;
+    private final RestTemplate restTemplate;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-
         // 1. Buscar la cookie Session-{idsession}
         String token = null;
         if (httpRequest.getCookies() != null) {
             for (Cookie cookie : httpRequest.getCookies()) {
-                if (cookie.getName().startsWith("Session-")) {
+                if (cookie.getName().startsWith("Acceso-")) {
                     try {
-                        byte[] decoded = java.util.Base64.getDecoder().decode(cookie.getValue());
-                        String jwtConcat = new String(decoded);
-                        String[] parts = jwtConcat.split("::");
-                        token = parts[0]; // solo usamos el token de sesión
+                        byte[] decoded = Base64.getDecoder().decode(cookie.getValue());
+                        token = new String(decoded);
                         break;
                     } catch (Exception e) {
-                        log.warn("Error decodificando cookie JWT: {}", e.getMessage());
+                        log.warn("Error decodificando cookie JWT de acceso: {}", e.getMessage());
                     }
                 }
             }
         }
-
         // 2. Validar y procesar el token
-        if (token != null && tokenProvider.validateToken(token)) {
-            Claims claims = tokenProvider.parseToken(token);
-            String username = claims.getSubject();
-            List<String> roles = claims.get("roles", List.class);
+        if (token != null) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            List<SimpleGrantedAuthority> authorities = roles.stream()
-                    .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
-                    .collect(Collectors.toList());
+            Map<String, String> body = Map.of("token", token);
+            HttpEntity<Map<String, String>> validationRequest = new HttpEntity<>(body, headers);
 
-            UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(username, null, authorities);
+            ResponseEntity<Map> validationResponse = restTemplate.postForEntity("http://localhost:7070/validartoken", validationRequest, Map.class);
 
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            if (Boolean.TRUE.equals(validationResponse.getBody().get("valido"))) {
+                String usuario = (String) validationResponse.getBody().get("idusuario");
+                List<String> roles = (List<String>) validationResponse.getBody().get("roles");
+                List<SimpleGrantedAuthority> authorities = roles.stream()
+                        .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
+                        .collect(Collectors.toList());
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(usuario, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
         }
-
+        // 3. continuar la cadena de filtros
         chain.doFilter(request, response);
     }
 }

@@ -15,7 +15,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class MiddlewareObtenerClaimsController {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @GetMapping("/obtenerclaimsSPA")
     public ResponseEntity<String> obtenerClaimsSPA(HttpServletRequest request, HttpServletResponse response) {

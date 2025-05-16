@@ -1,23 +1,18 @@
 package com.entelgy.securitymiddleware.config;
 
-import com.entelgy.securitymiddleware.dto.TokenPair;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import static com.entelgy.securitymiddleware.constants.ApplicationConstants.JWT_SUBJECT;
 
 
 @Slf4j
@@ -30,18 +25,14 @@ public class TokenProvider {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${jwt.expiration}")
-    private long jwtExpirationMs;
+    @Value("${jwt.sessionExpiration}")
+    private long jwtSessionExpirationMs;
+
+    @Value("${jwt.accessExpiration}")
+    private long jwtAccessExpirationMs;
 
     @Value("${jwt.refreshExpiration}")
-    private long refreshExpirationMs;
-
-    public TokenPair generateTokenPair(Authentication authentication) {
-        log.info("Begin of generateTokenPair");
-        String accessToken = generateAccessToken(authentication);
-        String refreshToken = generateRefreshToken(authentication);
-        return new TokenPair(accessToken, refreshToken);
-    }
+    private long jwtRefreshExpirationMs;
 
     public boolean validateToken(String token) {
         try {
@@ -74,23 +65,34 @@ public class TokenProvider {
                 .getPayload();
     }
 
-    public String generateAccessToken(Authentication authentication) {
-        Map<String, Object> accessTokenClaims = new HashMap<>();
-        accessTokenClaims.put("username", authentication.getName());
-        accessTokenClaims.put("authorities", authentication.getAuthorities()
-                        .stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.joining(",")));
-        log.info("Access Token Generated");
-        return generateToken(JWT_SUBJECT, jwtExpirationMs, accessTokenClaims);
+    public String generateSessionToken(String idUsuario, String idAplicacion, String idsession) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("typ", "sesion");
+        claims.put("idusuario", idUsuario);
+        claims.put("idaplicacion", idAplicacion);
+        claims.put("idsession", idsession);
+        return generateToken(idUsuario, jwtSessionExpirationMs, claims);
     }
 
-    private String generateRefreshToken(Authentication authentication) {
-        String subject = authentication.getName();
+    public String generateRefreshToken(String idUsuario, String idAplicacion, String idsession, int maxRefrescos) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("scope", "refresh");
-        log.info("Refresh Token Generated");
-        return generateToken(subject, refreshExpirationMs, claims);
+        claims.put("typ", "refresco");
+        claims.put("idusuario", idUsuario);
+        claims.put("idaplicacion", idAplicacion);
+        claims.put("idsession", idsession);
+        claims.put("MaxRefrescos", maxRefrescos);
+        return generateToken(idUsuario, jwtRefreshExpirationMs, claims);
+    }
+
+    public String generateAccessToken(String idUsuario, String idAplicacion, String idsession, List<String> roles, int numeroRefresco) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("typ", "acceso");
+        claims.put("idusuario", idUsuario);
+        claims.put("idaplicacion", idAplicacion);
+        claims.put("idsession", idsession);
+        claims.put("roles", roles);
+        claims.put("NumeroRefresco", numeroRefresco);
+        return generateToken(idUsuario, jwtAccessExpirationMs, claims);
     }
 
     public String generateTemporalToken(String subject, long expirationMs, Map<String, Object> claims) {
@@ -112,10 +114,6 @@ public class TokenProvider {
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-    }
-
-    public String getUsernameFromToken(String token) {
-        return parseToken(token).getSubject();
     }
 
 }

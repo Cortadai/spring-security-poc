@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MiddlewareLogoffController {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @GetMapping("/fin-logoff")
     public ResponseEntity<Void> finLogoff(HttpServletRequest request, HttpServletResponse response) {

@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MiddlewareLogInController {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @GetMapping("/fin-login")
     public ResponseEntity<Void> finLogin(HttpServletRequest request, HttpServletResponse response) {

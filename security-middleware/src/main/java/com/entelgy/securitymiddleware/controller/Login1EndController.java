@@ -8,19 +8,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 public class Login1EndController {
+
+    @Value("${jwt.maxRefresh}")
+    private int maxRefresh;
 
     private final TokenProvider tokenProvider;
     private final SecurityInfoService securityInfoService;
@@ -67,38 +70,20 @@ public class Login1EndController {
         }
 
         // Paso 6: Generar token de sesión
+        String jwtSesion = tokenProvider.generateSessionToken(idusuario, idaplicacion, idsession);
+
+        // Paso 7: Generar token de refresco
+        String jwtRefresh = tokenProvider.generateRefreshToken(idusuario, idaplicacion, idsession, maxRefresh);
+
+        // Paso 8: Generar token de acceso
         List<String> roles = securityInfoService.getRolesForUser(idusuario, idaplicacion);
-        Map<String, Object> sessionClaims = new HashMap<>();
-        sessionClaims.put("idaplicacion", idaplicacion);
-        sessionClaims.put("idsession", idsession);
-        sessionClaims.put("scope", "session");
-        sessionClaims.put("roles", roles);
-        sessionClaims.put("refreshToken", true);
-        String jwtSesion = tokenProvider.generateTemporalToken(idusuario, 3600_000, sessionClaims);
+        String jwtAcceso = tokenProvider.generateAccessToken(idusuario, idaplicacion, idsession, roles, 0);
 
-        // Paso 7: Validar token de sesión
-        if (!tokenProvider.validateToken(jwtSesion)) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return;
-        }
-
-        // Paso 8: Generar token de refresco
-        Map<String, Object> refreshClaims = new HashMap<>();
-        refreshClaims.put("idaplicacion", idaplicacion);
-        refreshClaims.put("idsession", idsession);
-        refreshClaims.put("scope", "refresh");
-        refreshClaims.put("maxRefresh", 3);
-        String jwtRefresh = tokenProvider.generateTemporalToken(idusuario, 86_400_000, refreshClaims);
-
-        // Paso 9: Validar token de refresco
-        if (!tokenProvider.validateToken(jwtRefresh)) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return;
-        }
+        // (Paso 9 Opcional) Cifrado AES aquí, lo haremos mas tarde
 
         // Paso 10: Concatenar y "cifrar" los tokens (simulado con Base64)
-        String sessionCookieValue = Base64.getEncoder().encodeToString((jwtSesion + "::" + jwtRefresh).getBytes());
-        String accessCookieValue = Base64.getEncoder().encodeToString(jwtSesion.getBytes());
+        String sessionCookieValue = Base64.getEncoder().encodeToString((jwtSesion + "::" + jwtRefresh).getBytes(StandardCharsets.UTF_8));
+        String accessCookieValue = Base64.getEncoder().encodeToString(jwtAcceso.getBytes(StandardCharsets.UTF_8));
 
         // Paso 11 y 12: Crear cookies
         ResponseCookie sessionCookie = ResponseCookie.from("Session-" + idsession, sessionCookieValue)
