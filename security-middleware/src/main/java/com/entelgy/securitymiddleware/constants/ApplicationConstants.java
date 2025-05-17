@@ -2,8 +2,12 @@ package com.entelgy.securitymiddleware.constants;
 
 public final class ApplicationConstants {
 
-    public static final String JWT_SUBJECT = "JWT-Token";
-    public static final String JWT_HEADER = "Authorization";
-    public static final String JWT_HEADER_REFRESH = "Authorization-Refresh";
+    public static final String CONTENT = "Content-Type";
+    public static final String XCERTAUTH = "X-Cert-Auth";
+    public static final String XIDSESSION = "X-Idsession";
+
+    public static final String ACCESS_TOKEN_PREFIX = "token:access:";
+    public static final String REFRESH_TOKEN_PREFIX = "token:refresh:";
+    public static final String BLACKLIST_PREFIX = "blacklist:";
 
 }

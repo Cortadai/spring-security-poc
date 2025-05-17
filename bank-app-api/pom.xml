@@ -12,7 +12,7 @@
     <artifactId>bank-app-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>bank-app-api</name>
-    <description>Demo project for Spring Boot and Spring Security</description>
+    <description>SPA backend</description>
     <properties>
         <java.version>17</java.version>
     </properties>

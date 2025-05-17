@@ -1,21 +1,28 @@
 package com.entelgy.securitymiddleware.config;
 
+import com.entelgy.securitymiddleware.filter.BlockBrowserAccessFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
 
+import static com.entelgy.securitymiddleware.constants.ApplicationConstants.*;
+
 @Configuration
 @AllArgsConstructor
 public class SecurityConfig {
+
+    private final BlockBrowserAccessFilter blockBrowserAccessFilter;
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -23,24 +30,32 @@ public class SecurityConfig {
             @Override
             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(Collections.singletonList("*"));
-                config.setAllowedMethods(Collections.singletonList("*"));
+                // permitimos el fake-sso y el backend-SPA
+                config.setAllowedOrigins(Arrays.asList("http://localhost:9090", "http://localhost:8080")); //"https://spa.domain.es"
+                config.setAllowedMethods(Arrays.asList(HttpMethod.GET.name(), HttpMethod.POST.name()));
                 config.setAllowCredentials(true);
-                config.setAllowedHeaders(Collections.singletonList("*"));
-                config.setExposedHeaders(Arrays.asList("*"));
+                config.setAllowedHeaders(Arrays.asList(CONTENT, XIDSESSION, XCERTAUTH));
+                config.setExposedHeaders(Collections.emptyList());
                 config.setMaxAge(3600L);
                 return config;
             }
         }));
+        http.addFilterBefore(blockBrowserAccessFilter, UsernamePasswordAuthenticationFilter.class);
         http.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.csrf(csrfConfig -> csrfConfig.disable());
-        http.authorizeHttpRequests((requests) -> requests
-//                .requestMatchers("/user").authenticated()
-                .requestMatchers("/loginBegin", "/login1End", "/logoff1", "/obtenerclaims1",
-                        "/validartoken","/refresco1", "/expira1", "/estadosession").permitAll()
+        http.requiresChannel(rcc -> rcc.anyRequest().requiresInsecure());       //.requiresSecure()
+        http.authorizeHttpRequests(requests -> requests
+                .requestMatchers(
+                        "/loginBegin", "/login1End", "/logoff1",
+                        "/obtenerclaims1", "/validartoken",
+                        "/refresco1", "/expira1", "/estadosession"
+                )
+                // Permitir acceso libre, pero mantener paso por filtros de seguridad (BlockBrowserAccessFilter)
+                .access((authentication, context) -> new org.springframework.security.authorization.AuthorizationDecision(true))
         );
         http.formLogin(flc -> flc.disable());
         http.httpBasic(hbc -> hbc.disable());
+        http.logout(loc -> loc.disable()); // use LogOff instead LogIn in angular and controllers to avoid problems
         return http.build();
     }
 

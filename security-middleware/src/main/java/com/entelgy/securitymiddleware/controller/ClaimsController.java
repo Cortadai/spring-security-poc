@@ -17,7 +17,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class ObtenerClaims1Controller {
+public class ClaimsController {
 
     private final TokenProvider tokenProvider;
 

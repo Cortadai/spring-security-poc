@@ -15,7 +15,7 @@ import java.util.Base64;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class EstadosessionController {
+public class SessionController {
 
     private final TokenProvider tokenProvider;
 

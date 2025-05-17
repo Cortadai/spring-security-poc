@@ -21,7 +21,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class Login1EndController {
+public class LogInEndController {
 
     @Value("${jwt.maxRefresh}")
     private int maxRefresh;

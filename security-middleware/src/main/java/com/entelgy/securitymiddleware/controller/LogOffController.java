@@ -17,7 +17,7 @@ import java.util.Base64;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class Logoff1Controller {
+public class LogOffController {
 
     private final TokenProvider tokenProvider;
     private final TokenRepository tokenRepository;

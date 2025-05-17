@@ -7,15 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.entelgy.securitymiddleware.constants.ApplicationConstants.*;
+
 @Repository
 @RequiredArgsConstructor
 public class TokenRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
-
-    private static final String ACCESS_TOKEN_PREFIX = "token:access:";
-    private static final String REFRESH_TOKEN_PREFIX = "token:refresh:";
-    private static final String BLACKLIST_PREFIX = "blacklist:";
 
     @Value("${jwt.accessExpiration}")
     private long accessExpiration;

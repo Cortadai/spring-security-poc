@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-public class LoginBeginController {
+public class LogInBeginController {
 
     @Value("${jwt.temporalExpiration}")
     private long jwtTemporalExpirationMs;

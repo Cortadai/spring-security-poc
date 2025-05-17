@@ -15,7 +15,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class ValidarTokenController {
+public class ValidateTokenController {
 
     private final TokenProvider tokenProvider;
 

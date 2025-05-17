@@ -16,7 +16,7 @@ import java.util.Base64;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class ExpiraTokenController {
+public class ExpireTokenController {
 
     private final TokenProvider tokenProvider;
 
