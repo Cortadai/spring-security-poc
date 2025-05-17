@@ -25,26 +25,58 @@ export class AppComponent implements OnInit{
 
     this.spinner.show();
 
-    this.authService.finalizeLogin().subscribe({
-      next: () => {
-        this.authService.obtenerClaims().subscribe({
-          next: () => {
-            setTimeout(() => {
-              this.spinner.hide();
-              this.router.navigate(['dashboard']);
-            }, 1000); // opcional: para que se note la animación
-          },
-          error: (err) => {
-            console.warn('Error al obtener datos de usuario:', err);
+    const idsession = sessionStorage.getItem("idsession");
+
+    if (idsession) {
+      this.spinnerStateService.setMessage('Restaurando sesión...');
+      this.authService.obtenerClaims().subscribe({
+        next: () => {
+          setTimeout(() => {
             this.spinner.hide();
-          }
-        });
-      },
-      error: (err) => {
-        console.warn('Error al finalizar login:', err);
-        this.spinner.hide();
-      }
-    });
+            this.router.navigate(['dashboard']);
+          }, 1000);
+        },
+        error: err => {
+          console.warn('Error al obtener claims tras recarga:', err);
+
+          // 🔥 Forzamos logout completo para limpiar también cookies
+          this.authService.logout(idsession).subscribe({
+            next: () => {
+              sessionStorage.clear();
+              this.spinner.hide();
+              this.router.navigate(['/home']);
+            },
+            error: () => {
+              sessionStorage.clear();
+              this.spinner.hide();
+              this.router.navigate(['/home']);
+            }
+          });
+        }
+      });
+    } else {
+      // Venimos del login → login completo
+      this.authService.finalizeLogin().subscribe({
+        next: () => {
+          this.authService.obtenerClaims().subscribe({
+            next: () => {
+              setTimeout(() => {
+                this.spinner.hide();
+                this.router.navigate(['dashboard']);
+              }, 1000);
+            },
+            error: err => {
+              console.warn('Error al obtener datos de usuario:', err);
+              this.spinner.hide();
+            }
+          });
+        },
+        error: err => {
+          console.warn('Error al finalizar login:', err);
+          this.spinner.hide();
+        }
+      });
+    }
   }
 
 }

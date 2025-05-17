@@ -87,6 +87,7 @@ public class SecurityConfig {
                 .requestMatchers("/obtenerclaimsSPA").authenticated()
                 .requestMatchers("/refresco1SPA").authenticated()
                 .requestMatchers("/expira1SPA").authenticated()
+                .requestMatchers("/estadoSesionSPA").authenticated()
                 .requestMatchers("/notices", "/contact", "/register", "/apiLogin",
                         // las nuevas
                         "/fin-login","/fin-logoff").permitAll()

@@ -10,6 +10,7 @@ import { NoticesComponent } from './components/notices/notices.component';
 import { LoansComponent } from './components/loans/loans.component';
 import { CardsComponent } from './components/cards/cards.component';
 import { HomeComponent } from './components/home/home.component';
+import {sesionGuard} from "./guards/sesion.guard";
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full'},
@@ -19,10 +20,10 @@ const routes: Routes = [
   { path: 'notices', component: NoticesComponent},
   { path: 'dashboard', component: DashboardComponent},
   { path: 'logout', component: LogoutComponent},
-  { path: 'myAccount', component: AccountComponent},
-  { path: 'myBalance', component: BalanceComponent},
-  { path: 'myLoans', component: LoansComponent},
-  { path: 'myCards', component: CardsComponent}
+  { path: 'myAccount', component: AccountComponent, canActivate: [sesionGuard] },
+  { path: 'myBalance', component: BalanceComponent, canActivate: [sesionGuard] },
+  { path: 'myLoans', component: LoansComponent, canActivate: [sesionGuard] },
+  { path: 'myCards', component: CardsComponent,canActivate: [sesionGuard] }
 ];
 
 @NgModule({

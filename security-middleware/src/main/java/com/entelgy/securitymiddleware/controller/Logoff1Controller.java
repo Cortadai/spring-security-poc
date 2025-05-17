@@ -63,9 +63,9 @@ public class Logoff1Controller {
             String jwtRefresh = sessionParts.length > 1 ? sessionParts[1] : null;
             String jwtAccess = new String(Base64.getDecoder().decode(accessCookieValue), StandardCharsets.UTF_8);
 
-            // 2. Validar token de sesión (requisito mínimo para logout)
+            // 2. Validar token de sesión
             if (!tokenProvider.validateToken(jwtSesion)) {
-                throw new RuntimeException("Token de sesión inválido");
+                log.warn("Token de sesión caducado, pero procedemos con el logout");
             }
 
             // 3. Obtener jti de access y refresh

@@ -1,9 +1,6 @@
 
 export const  AppConstants = {
     CONTACT_API_URL : "/contact",
-    LOGIN_API_URL : "/user",
-    LOGOUT_API_URL : "/apiLogout",
-    REFRESH_API_URL : "/refresh",
     ACCOUNT_API_URL : "/myAccount",
     BALANCE_API_URL : "/myBalance",
     LOANS_API_URL : "/myLoans",
@@ -13,6 +10,6 @@ export const  AppConstants = {
     FIN_LOGOFF_URL : "/fin-logoff",
     OBTENER_CLAIMS_URL : "/obtenerclaimsSPA",
     EXPIRA_URL : "/expira1SPA",
-    REFRESCA_URL : "/refresco1SPA"
-
+    REFRESCA_URL : "/refresco1SPA",
+    ESTADO_SESION_URL : "/estadoSesionSPA"
 }

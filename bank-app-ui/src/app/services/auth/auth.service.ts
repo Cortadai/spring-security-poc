@@ -1,9 +1,9 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from "@angular/common/http";
-import {map, mapTo, Observable} from "rxjs";
+import {HttpClient, HttpResponse} from "@angular/common/http";
+import {map, mapTo, Observable, of} from "rxjs";
 import {environment} from "../../../environments/environment";
 import {AppConstants} from "../../constants/app.constants";
-import {tap} from "rxjs/operators";
+import {catchError, tap} from "rxjs/operators";
 import {User} from "../../model/user.model";
 
 @Injectable({
@@ -82,6 +82,20 @@ export class AuthService {
 
         return user;
       })
+    );
+  }
+
+  verificarSesionActiva(): Observable<boolean> {
+    const idsession = sessionStorage.getItem('idsession');
+    if (!idsession) return of(false);
+
+    return this.http.get(environment.rooturl + AppConstants.ESTADO_SESION_URL, {
+      withCredentials: true,
+      observe: 'response',
+      headers: { 'X-Idsession': idsession }
+    }).pipe(
+      map((res: HttpResponse<any>) => res.status === 200),
+      catchError(() => of(false))
     );
   }
 
