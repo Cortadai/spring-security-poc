@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.entelgy.bank.constants.ApplicationConstants.ACCESS_COOKIE;
+import static com.entelgy.bank.constants.ApplicationConstants.MIDDLEWARE_URL;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -38,7 +41,7 @@ public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
         String token = null;
         if (httpRequest.getCookies() != null) {
             for (Cookie cookie : httpRequest.getCookies()) {
-                if (cookie.getName().startsWith("Acceso-")) {
+                if (cookie.getName().startsWith(ACCESS_COOKIE)) {
                     try {
                         byte[] decoded = Base64.getDecoder().decode(cookie.getValue());
                         token = new String(decoded);
@@ -58,7 +61,8 @@ public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
             Map<String, String> body = Map.of("token", token);
             HttpEntity<Map<String, String>> validationRequest = new HttpEntity<>(body, headers);
 
-            ResponseEntity<Map> validationResponse = restTemplate.postForEntity("http://localhost:7070/validartoken", validationRequest, Map.class);
+            ResponseEntity<Map> validationResponse = restTemplate
+                    .postForEntity(MIDDLEWARE_URL+"/validartoken", validationRequest, Map.class);
 
             if (Boolean.TRUE.equals(validationResponse.getBody().get("valido"))) {
                 String usuario = (String) validationResponse.getBody().get("idusuario");

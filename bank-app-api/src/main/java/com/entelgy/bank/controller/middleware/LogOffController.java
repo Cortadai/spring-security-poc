@@ -1,6 +1,6 @@
 package com.entelgy.bank.controller.middleware;
 
-import jakarta.servlet.http.Cookie;
+import com.entelgy.bank.util.SessionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +12,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
+import static com.entelgy.bank.constants.ApplicationConstants.*;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -21,25 +23,14 @@ public class LogOffController {
 
     @GetMapping("/logOff")
     public ResponseEntity<Void> logOff(HttpServletRequest request, HttpServletResponse response) {
-        String idsession = request.getHeader("X-Idsession");
+        String idsession = SessionUtil.getSessionId(request);
         if (idsession == null || idsession.isBlank()) {
             return ResponseEntity.badRequest().build();
         }
 
-        // Extraer cookies relevantes
-        String sessionCookieName = "Session-" + idsession;
-        String accesoCookieName = "Acceso-" + idsession;
-        String sessionCookie = null;
-        String accesoCookie = null;
-
-        for (Cookie cookie : request.getCookies()) {
-            if (sessionCookieName.equals(cookie.getName())) {
-                sessionCookie = cookie.getValue();
-            }
-            if (accesoCookieName.equals(cookie.getName())) {
-                accesoCookie = cookie.getValue();
-            }
-        }
+        // Extraer cookies relevantes usando SessionUtil
+        String sessionCookie = SessionUtil.getCookieValue(request, SESSION_COOKIE + idsession);
+        String accesoCookie = SessionUtil.getCookieValue(request, ACCESS_COOKIE + idsession);
 
         if (sessionCookie == null || accesoCookie == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -47,13 +38,14 @@ public class LogOffController {
 
         // Construir cabeceras
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.COOKIE, sessionCookieName + "=" + sessionCookie + "; " + accesoCookieName + "=" + accesoCookie);
-        headers.add("X-Cert-Auth", "FAKE-CERT-FOR-POC"); // sustituir si se implementa validación real
-        headers.add("X-Idsession", idsession);
+        headers.add(HttpHeaders.COOKIE, SESSION_COOKIE + idsession + "=" + sessionCookie + "; " +
+                ACCESS_COOKIE + idsession + "=" + accesoCookie);
+        headers.add(XCERTAUTH, FAKECERT);
+        headers.add(XIDSESSION, idsession);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        String url = "http://localhost:7070/logoff1";
+        String url = MIDDLEWARE_URL+"/logoff1";
         ResponseEntity<String> mwResponse;
         try {
             mwResponse = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
@@ -66,15 +58,15 @@ public class LogOffController {
         List<String> setCookies = mwResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
         if (setCookies != null) {
             for (String cookie : setCookies) {
-                response.addHeader("Set-Cookie", cookie);
+                response.addHeader(SET_COOKIE, cookie);
             }
         }
 
         // Copiar cabecera X-Idsession vacía
-        String idsessionHeader = mwResponse.getHeaders().getFirst("X-Idsession");
+        String idsessionHeader = mwResponse.getHeaders().getFirst(XIDSESSION);
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header("X-Idsession", idsessionHeader != null ? idsessionHeader : "")
+                .header(XIDSESSION, idsessionHeader != null ? idsessionHeader : "")
                 .build();
     }
 }

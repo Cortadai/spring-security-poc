@@ -35,7 +35,8 @@ export class ExpirationInterceptor implements HttpInterceptor {
       req.url.includes(AppConstants.REFRESH_URL) ||
       req.url.includes(AppConstants.LOGIN_END_URL) ||
       req.url.includes(AppConstants.LOGOFF_URL) ||
-      req.url.includes(AppConstants.CLAIMS_URL)
+      req.url.includes(AppConstants.CLAIMS_URL) ||
+      req.url.includes(AppConstants.SESSION_URL)
     ) {
       return next.handle(req);
     }

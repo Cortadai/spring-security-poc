@@ -1,5 +1,6 @@
 package com.entelgy.bank.controller.middleware;
 
+import com.entelgy.bank.util.SessionUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,6 +13,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
+import static com.entelgy.bank.constants.ApplicationConstants.*;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -21,26 +24,20 @@ public class LogInController {
 
     @GetMapping("/logInEnd")
     public ResponseEntity<Void> loginEnd(HttpServletRequest request, HttpServletResponse response) {
-        // 1. Leer Sessiontmp
-        String sessiontmp = null;
-        for (Cookie cookie : request.getCookies()) {
-            if ("Sessiontmp".equals(cookie.getName())) {
-                sessiontmp = cookie.getValue();
-                break;
-            }
-        }
+        // Leer Sessiontmp usando SessionUtil
+        String sessiontmp = SessionUtil.getCookieValue(request, SESSIONTMP);
         if (sessiontmp == null || sessiontmp.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // 2. Preparar llamada al middleware
+        // Preparar llamada al middleware
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.COOKIE, "Sessiontmp=" + sessiontmp);
-        headers.add("X-Cert-Auth", "FAKE-CERT-FOR-POC");
+        headers.add(HttpHeaders.COOKIE, SESSIONTMP+"=" + sessiontmp);
+        headers.add(XCERTAUTH, FAKECERT);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        String url = "http://localhost:7070/login1End";
+        String url = MIDDLEWARE_URL+"/login1End";
         ResponseEntity<String> mwResponse;
         try {
             mwResponse = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
@@ -49,26 +46,24 @@ public class LogInController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        // 3. Copiar las cookies del middleware
+        // Copiar las cookies del middleware
         List<String> setCookies = mwResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
         if (setCookies != null) {
             for (String cookie : setCookies) {
-                response.addHeader("Set-Cookie", cookie);
+                response.addHeader(SET_COOKIE, cookie);
             }
         }
 
-        // 4. Copiar cabecera X-Idsession
-        String idsession = mwResponse.getHeaders().getFirst("X-Idsession");
-
+        // Copiar cabecera X-Idsession
+        String idsession = mwResponse.getHeaders().getFirst(XIDSESSION);
+        response.addHeader(XIDSESSION, idsession != null ? idsession : "");
+        
         // 5. Borrar Sessiontmp (opcional, ya lo hace el middleware)
-        Cookie borrar = new Cookie("Sessiontmp", "");
+        Cookie borrar = new Cookie(SESSIONTMP, "");
         borrar.setMaxAge(0);
         borrar.setPath("/");
         response.addCookie(borrar);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .header("X-Idsession", idsession != null ? idsession : "")
-                .build();
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
-
 }

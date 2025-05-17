@@ -1,6 +1,6 @@
 package com.entelgy.bank.controller.middleware;
 
-import jakarta.servlet.http.Cookie;
+import com.entelgy.bank.util.SessionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +13,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
+import static com.entelgy.bank.constants.ApplicationConstants.*;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -22,42 +24,30 @@ public class RefreshController {
 
     @GetMapping("/refresh")
     public ResponseEntity<Void> refresh(HttpServletRequest request, HttpServletResponse response) {
-        String idsession = request.getHeader("X-Idsession");
+        String idsession = SessionUtil.getSessionId(request);
         if (idsession == null || idsession.isBlank()) {
             return ResponseEntity.badRequest().build();
         }
 
-        String sessionCookieName = "Session-" + idsession;
-        String accesoCookieName = "Acceso-" + idsession;
-
-        String sessionCookie = null;
-        String accesoCookie = null;
-
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (sessionCookieName.equals(cookie.getName())) {
-                    sessionCookie = cookie.getValue();
-                }
-                if (accesoCookieName.equals(cookie.getName())) {
-                    accesoCookie = cookie.getValue();
-                }
-            }
-        }
+        // Extraer cookies relevantes usando SessionUtil
+        String sessionCookie = SessionUtil.getCookieValue(request, SESSION_COOKIE + idsession);
+        String accesoCookie = SessionUtil.getCookieValue(request, ACCESS_COOKIE + idsession);
 
         if (sessionCookie == null || accesoCookie == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.COOKIE, sessionCookieName + "=" + sessionCookie + "; " + accesoCookieName + "=" + accesoCookie);
-        headers.set("X-Cert-Auth", "FAKE-CERT-FOR-POC");
-        headers.set("X-Idsession", idsession);
+        headers.set(HttpHeaders.COOKIE, SESSION_COOKIE + idsession + "=" + sessionCookie + "; " +
+                ACCESS_COOKIE + idsession + "=" + accesoCookie);
+        headers.set(XCERTAUTH, FAKECERT);
+        headers.set(XIDSESSION, idsession);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
             ResponseEntity<String> mwResponse = restTemplate.exchange(
-                    "http://localhost:7070/refresco1",
+                    MIDDLEWARE_URL+"/refresco1",
                     HttpMethod.GET,
                     entity,
                     String.class
@@ -67,7 +57,7 @@ public class RefreshController {
             List<String> setCookies = mwResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
             if (setCookies != null) {
                 for (String cookie : setCookies) {
-                    response.addHeader("Set-Cookie", cookie);
+                    response.addHeader(SET_COOKIE, cookie);
                 }
             }
 
@@ -84,22 +74,13 @@ public class RefreshController {
 
     @GetMapping("/expires")
     public ResponseEntity<Boolean> expires(HttpServletRequest request) {
-        String idsession = request.getHeader("X-Idsession");
+        String idsession = SessionUtil.getSessionId(request);
         if (idsession == null || idsession.isBlank()) {
             return ResponseEntity.badRequest().body(false);
         }
 
-        String cookieName = "Acceso-" + idsession;
-        String cookieValue = null;
-
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (cookieName.equals(cookie.getName())) {
-                    cookieValue = cookie.getValue();
-                    break;
-                }
-            }
-        }
+        String cookieName = ACCESS_COOKIE + idsession;
+        String cookieValue = SessionUtil.getCookieValue(request, cookieName);
 
         if (cookieValue == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
@@ -108,14 +89,14 @@ public class RefreshController {
         // Preparar cabeceras para reenviar al middleware
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.COOKIE, cookieName + "=" + cookieValue);
-        headers.add("X-Cert-Auth", "FAKE-CERT-FOR-POC");
-        headers.add("X-Idsession", idsession);
+        headers.add(XCERTAUTH, FAKECERT);
+        headers.add(XIDSESSION, idsession);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
             ResponseEntity<Boolean> responseMW = restTemplate.exchange(
-                    "http://localhost:7070/expira1",
+                    MIDDLEWARE_URL+"/expira1",
                     HttpMethod.GET,
                     entity,
                     Boolean.class
