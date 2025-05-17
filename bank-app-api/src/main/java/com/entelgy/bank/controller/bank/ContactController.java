@@ -1,4 +1,4 @@
-package com.entelgy.bank.controller;
+package com.entelgy.bank.controller.bank;
 
 import com.entelgy.bank.model.Contact;
 import com.entelgy.bank.repository.ContactRepository;

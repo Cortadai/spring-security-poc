@@ -80,12 +80,10 @@ public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
         return List.of(
-                "/fin-login",
-                "/fin-logoff",
-                "/apiLogin",
+                "/logInEnd",
+                "/logOff",
                 "/notices",
-                "/contact",
-                "/register"
+                "/contact"
         ).contains(path);
     }
 

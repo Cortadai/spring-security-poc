@@ -1,4 +1,4 @@
-package com.entelgy.bank.controller;
+package com.entelgy.bank.controller.middleware;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,12 +15,12 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class MiddlewareLogInController {
+public class LogInController {
 
     private final RestTemplate restTemplate;
 
-    @GetMapping("/fin-login")
-    public ResponseEntity<Void> finLogin(HttpServletRequest request, HttpServletResponse response) {
+    @GetMapping("/logInEnd")
+    public ResponseEntity<Void> loginEnd(HttpServletRequest request, HttpServletResponse response) {
         // 1. Leer Sessiontmp
         String sessiontmp = null;
         for (Cookie cookie : request.getCookies()) {

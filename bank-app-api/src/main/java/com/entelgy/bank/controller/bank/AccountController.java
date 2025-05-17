@@ -1,4 +1,4 @@
-package com.entelgy.bank.controller;
+package com.entelgy.bank.controller.bank;
 
 import com.entelgy.bank.model.Accounts;
 import com.entelgy.bank.repository.AccountsRepository;

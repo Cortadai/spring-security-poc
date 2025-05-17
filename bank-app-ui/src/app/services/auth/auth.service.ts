@@ -14,7 +14,7 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   finalizeLogin(): Observable<void> {
-    return this.http.get(environment.rooturl + AppConstants.FIN_LOGIN_URL, {
+    return this.http.get(environment.rooturl + AppConstants.LOGIN_END_URL, {
       withCredentials: true,
       observe: 'response'
     }).pipe(
@@ -33,7 +33,7 @@ export class AuthService {
 
   logout(idsession: string): Observable<void> {
     return this.http.get<void>(
-      environment.rooturl + AppConstants.FIN_LOGOFF_URL,
+      environment.rooturl + AppConstants.LOGOFF_URL,
       {
         withCredentials: true,
         headers: { 'X-Idsession': idsession }
@@ -53,7 +53,7 @@ export class AuthService {
     }
 
     return this.http.get<any>(
-      environment.rooturl + AppConstants.OBTENER_CLAIMS_URL,
+      environment.rooturl + AppConstants.CLAIMS_URL,
       {
         withCredentials: true,
         headers: {
@@ -70,10 +70,7 @@ export class AuthService {
           formattedName,                                  // name (o username)
           '528963147',                                    // meto a fuego para pruegas
           accessClaims.sub || '',                        // email
-          '',                                             // password
           (accessClaims.roles?.[0] || ''),               // role (primer rol, si hay varios)
-          '',                                             // statusCd
-          '',                                             // statusMsg
           'AUTH'                                          // authStatus
         );
 
@@ -89,7 +86,7 @@ export class AuthService {
     const idsession = sessionStorage.getItem('idsession');
     if (!idsession) return of(false);
 
-    return this.http.get(environment.rooturl + AppConstants.ESTADO_SESION_URL, {
+    return this.http.get(environment.rooturl + AppConstants.SESSION_URL, {
       withCredentials: true,
       observe: 'response',
       headers: { 'X-Idsession': idsession }

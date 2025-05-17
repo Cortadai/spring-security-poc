@@ -1,4 +1,4 @@
-package com.entelgy.bank.controller;
+package com.entelgy.bank.controller.middleware;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,12 +15,12 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class MiddlewareLogoffController {
+public class LogOffController {
 
     private final RestTemplate restTemplate;
 
-    @GetMapping("/fin-logoff")
-    public ResponseEntity<Void> finLogoff(HttpServletRequest request, HttpServletResponse response) {
+    @GetMapping("/logOff")
+    public ResponseEntity<Void> logOff(HttpServletRequest request, HttpServletResponse response) {
         String idsession = request.getHeader("X-Idsession");
         if (idsession == null || idsession.isBlank()) {
             return ResponseEntity.badRequest().build();

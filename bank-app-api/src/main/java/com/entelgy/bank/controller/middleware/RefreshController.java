@@ -1,4 +1,4 @@
-package com.entelgy.bank.controller;
+package com.entelgy.bank.controller.middleware;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,12 +16,12 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class MiddlewareRefrescoController {
+public class RefreshController {
 
     private final RestTemplate restTemplate;
 
-    @GetMapping("/refresco1SPA")
-    public ResponseEntity<Void> refresco1SPA(HttpServletRequest request, HttpServletResponse response) {
+    @GetMapping("/refresh")
+    public ResponseEntity<Void> refresh(HttpServletRequest request, HttpServletResponse response) {
         String idsession = request.getHeader("X-Idsession");
         if (idsession == null || idsession.isBlank()) {
             return ResponseEntity.badRequest().build();
@@ -82,8 +82,8 @@ public class MiddlewareRefrescoController {
         }
     }
 
-    @GetMapping("/expira1SPA")
-    public ResponseEntity<Boolean> expira1SPA(HttpServletRequest request) {
+    @GetMapping("/expires")
+    public ResponseEntity<Boolean> expires(HttpServletRequest request) {
         String idsession = request.getHeader("X-Idsession");
         if (idsession == null || idsession.isBlank()) {
             return ResponseEntity.badRequest().body(false);

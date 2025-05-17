@@ -1,4 +1,4 @@
-package com.entelgy.bank.controller;
+package com.entelgy.bank.controller.middleware;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,12 +13,12 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class MiddlewareEstadoSesionController {
+public class SessionController {
 
     private final RestTemplate restTemplate;
 
-    @GetMapping("/estadoSesionSPA")
-    public ResponseEntity<Void> estadoSesionSPA(HttpServletRequest request, HttpServletResponse response) {
+    @GetMapping("/getSessionState")
+    public ResponseEntity<Void> getSessionState(HttpServletRequest request, HttpServletResponse response) {
         String idsession = request.getHeader("X-Idsession");
         if (idsession == null || idsession.isBlank()) {
             return ResponseEntity.badRequest().build();

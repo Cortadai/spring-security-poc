@@ -31,23 +31,23 @@ export class ExpirationInterceptor implements HttpInterceptor {
 
     // Evitar bucles con llamadas internas
     if (
-      req.url.includes('/expira1SPA') ||
-      req.url.includes('/refresco1SPA') ||
-      req.url.includes('/fin-login') ||
-      req.url.includes('/fin-logoff') ||
-      req.url.includes('/obtenerclaimsSPA')
+      req.url.includes(AppConstants.EXPIRES_URL) ||
+      req.url.includes(AppConstants.REFRESH_URL) ||
+      req.url.includes(AppConstants.LOGIN_END_URL) ||
+      req.url.includes(AppConstants.LOGOFF_URL) ||
+      req.url.includes(AppConstants.CLAIMS_URL)
     ) {
       return next.handle(req);
     }
 
-    return this.http.get<boolean>(environment.rooturl + AppConstants.EXPIRA_URL, {
+    return this.http.get<boolean>(environment.rooturl + AppConstants.EXPIRES_URL, {
       withCredentials: true,
       headers: { 'X-Idsession': idsession }
     }).pipe(
       switchMap(expira => {
         if (expira) {
           console.log('[Interceptor] Token por expirar, refrescando...');
-          return this.http.get<void>(environment.rooturl + AppConstants.REFRESCA_URL, {
+          return this.http.get<void>(environment.rooturl + AppConstants.REFRESH_URL, {
             withCredentials: true,
             headers: { 'X-Idsession': idsession }
           }).pipe(mapTo(true));

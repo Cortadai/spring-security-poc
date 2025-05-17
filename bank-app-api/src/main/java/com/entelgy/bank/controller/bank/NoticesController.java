@@ -1,4 +1,4 @@
-package com.entelgy.bank.controller;
+package com.entelgy.bank.controller.bank;
 
 import com.entelgy.bank.model.Notice;
 import com.entelgy.bank.repository.NoticeRepository;

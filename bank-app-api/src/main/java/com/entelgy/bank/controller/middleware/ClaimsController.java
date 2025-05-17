@@ -1,4 +1,4 @@
-package com.entelgy.bank.controller;
+package com.entelgy.bank.controller.middleware;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,12 +13,12 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class MiddlewareObtenerClaimsController {
+public class ClaimsController {
 
     private final RestTemplate restTemplate;
 
-    @GetMapping("/obtenerclaimsSPA")
-    public ResponseEntity<String> obtenerClaimsSPA(HttpServletRequest request, HttpServletResponse response) {
+    @GetMapping("/getClaims")
+    public ResponseEntity<String> getClaims(HttpServletRequest request, HttpServletResponse response) {
         String idsession = request.getHeader("X-Idsession");
         if (idsession == null || idsession.isBlank()) {
             return ResponseEntity.badRequest().body("Falta cabecera X-Idsession");
