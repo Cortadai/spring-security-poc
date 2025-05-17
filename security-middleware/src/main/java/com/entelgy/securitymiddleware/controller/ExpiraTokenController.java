@@ -50,17 +50,23 @@ public class ExpiraTokenController {
         }
 
         try {
+            if (!tokenProvider.validateToken(jwtAccess)) {
+                log.warn("Token inválido o revocado en /expira1");
+                return ResponseEntity.status(401).body(false);
+            }
+
             Claims claims = tokenProvider.parseToken(jwtAccess);
             long expTimestamp = claims.getExpiration().getTime();
             long now = System.currentTimeMillis();
-            boolean porExpirar = (expTimestamp - now) <= 30_000; // 30 segundos
+            boolean porExpirar = (expTimestamp - now) <= 30_000;
 
             log.info("Token expira en {} ms → ¿por expirar?: {}", (expTimestamp - now), porExpirar);
             return ResponseEntity.ok(porExpirar);
 
         } catch (Exception e) {
-            log.error("Token inválido al verificar expiración: {}", e.getMessage());
+            log.error("Error al procesar el token en /expira1: {}", e.getMessage());
             return ResponseEntity.status(401).body(false);
         }
     }
+
 }

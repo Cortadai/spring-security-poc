@@ -1,6 +1,7 @@
 package com.entelgy.securitymiddleware.controller;
 
 import com.entelgy.securitymiddleware.config.TokenProvider;
+import com.entelgy.securitymiddleware.repository.TokenRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 @Slf4j
@@ -18,11 +20,10 @@ import java.util.Base64;
 public class Logoff1Controller {
 
     private final TokenProvider tokenProvider;
+    private final TokenRepository tokenRepository;
 
     @GetMapping("/logoff1")
     public void logoff1(HttpServletRequest request, HttpServletResponse response) {
-
-        // 1. Validar cabecera X-Cert-Auth
         String certHeader = request.getHeader("X-Cert-Auth");
         String idsession = request.getHeader("X-Idsession");
 
@@ -31,7 +32,6 @@ public class Logoff1Controller {
             return;
         }
 
-        // 2. Buscar cookies
         String sessionCookieName = "Session-" + idsession;
         String accessCookieName = "Acceso-" + idsession;
 
@@ -56,16 +56,27 @@ public class Logoff1Controller {
         }
 
         try {
-            // 3. Desencriptar y validar token de sesión
-            String decodedSession = new String(Base64.getDecoder().decode(sessionCookieValue));
+            // 1. Decodificar tokens desde Base64
+            String decodedSession = new String(Base64.getDecoder().decode(sessionCookieValue), StandardCharsets.UTF_8);
             String[] sessionParts = decodedSession.split("::");
             String jwtSesion = sessionParts[0];
+            String jwtRefresh = sessionParts.length > 1 ? sessionParts[1] : null;
+            String jwtAccess = new String(Base64.getDecoder().decode(accessCookieValue), StandardCharsets.UTF_8);
+
+            // 2. Validar token de sesión (requisito mínimo para logout)
             if (!tokenProvider.validateToken(jwtSesion)) {
-                throw new RuntimeException("Token de sesión no válido");
+                throw new RuntimeException("Token de sesión inválido");
             }
 
+            // 3. Obtener jti de access y refresh
+            String jtiAccess = tokenProvider.getJtiFromToken(jwtAccess);
+            String jtiRefresh = jwtRefresh != null ? tokenProvider.getJtiFromToken(jwtRefresh) : null;
+
+            // 4. Revocar tokens en Redis
+            tokenRepository.removeTokens(idsession, jtiAccess, jtiRefresh);
+
         } catch (Exception e) {
-            log.warn("Error durante validación de tokens en logoff1: {}", e.getMessage());
+            log.warn("Error durante logoff1: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }

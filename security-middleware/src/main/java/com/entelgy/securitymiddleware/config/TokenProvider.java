@@ -1,23 +1,24 @@
 package com.entelgy.securitymiddleware.config;
 
+import com.entelgy.securitymiddleware.repository.TokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class TokenProvider {
+
+    private final TokenRepository tokenRepository;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -36,24 +37,31 @@ public class TokenProvider {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token);
-            log.info("Token is valid");
+            Claims claims = parseToken(token);
+
+            String jti = claims.getId(); // Extrae el 'jti'
+            if (tokenRepository.isTokenBlacklisted(jti)) {
+                log.warn("Token con jti={} está revocado (blacklist)", jti);
+                return false;
+            }
+
+            log.info("Token válido");
             return true;
-        } catch (SignatureException e) {
-            log.error("Invalid JWT signature: {}", e.getMessage());
-        } catch (MalformedJwtException e) {
-            log.error("Invalid JWT token: {}", e.getMessage());
+
         } catch (ExpiredJwtException e) {
-            log.error("JWT token is expired: {}", e.getMessage());
+            log.error("Token expirado: {}", e.getMessage());
+        } catch (SignatureException e) {
+            log.error("Firma JWT inválida: {}", e.getMessage());
+        } catch (MalformedJwtException e) {
+            log.error("Token JWT mal formado: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            log.error("JWT token is unsupported: {}", e.getMessage());
+            log.error("Token JWT no soportado: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            log.error("JWT claims string is empty: {}", e.getMessage());
+            log.error("Claims del JWT vacíos o nulos: {}", e.getMessage());
+        } catch (Exception e) {
+            log.error("Error desconocido al validar token: {}", e.getMessage());
         }
-        log.info("Token is invalid");
+
         return false;
     }
 
@@ -102,18 +110,38 @@ public class TokenProvider {
     private String generateToken(String subject, long expirationMs, Map<String, Object> claims) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
-        JwtBuilder builder = Jwts.builder()
+
+        // Añadir jti único
+        claims.putIfAbsent("jti", UUID.randomUUID().toString());
+
+        return Jwts.builder()
                 .issuer(issuer)
                 .subject(subject)
                 .issuedAt(now)
                 .claims(claims)
                 .expiration(expiryDate)
-                .signWith(getSigningKey());
-        return builder.compact();
+                .signWith(getSigningKey())
+                .compact();
     }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
+    public String getJtiFromToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return claims.getId();
+        } catch (ExpiredJwtException e) {
+            log.warn("Token expirado al extraer jti, usando claims del token caducado");
+            return e.getClaims().getId();
+        } catch (Exception e) {
+            log.error("No se pudo extraer el jti del token: {}", e.getMessage());
+            return null;
+        }
+    }
 }
