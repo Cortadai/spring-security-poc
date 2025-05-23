@@ -1,0 +1,22 @@
+<app-header></app-header>
+<div class="main-content">
+  <div class="container-fluid content-top-gap">
+
+    <div class="welcome-msg pt-3 pb-4 text-center">
+      <h1 class="text-danger">403 - Acceso Denegado</h1>
+      <p class="text-muted">No tienes permisos para acceder a esta sección.</p>
+      <p class="text-muted">Si crees que esto es un error, contacta con soporte técnico.</p>
+      <button class="btn btn-outline-primary mt-4" *ngIf="!redireccionInterna" (click)="onVolverClick()">
+        {{ mensajeVolver }}
+      </button>
+      <button class="btn btn-outline-primary mt-4" *ngIf="redireccionInterna" routerLink="/dashboard">
+        {{ mensajeVolver }}
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+
+

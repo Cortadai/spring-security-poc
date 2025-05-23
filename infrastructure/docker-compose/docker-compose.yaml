@@ -1,0 +1,69 @@
+version: '3.7'
+
+services:
+  elasticsearch-2:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.4
+    container_name: elastic-2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - TZ=Europe/Madrid
+    ports:
+      - "9292:9200"
+    networks:
+      - poc2
+
+  logstash-2:
+    image: docker.elastic.co/logstash/logstash:7.17.4
+    container_name: logstash-2
+    volumes:
+      - ./volumes/poc2/logstash/pipeline:/usr/share/logstash/pipeline
+      - ../../zlogs2:/usr/share/logstash/logs
+    ports:
+      - "5050:5000"
+      - "9696:9600"
+    environment:
+      - TZ=Europe/Madrid
+    depends_on:
+      - elasticsearch
+    networks:
+      - poc2
+
+  kibana-2:
+    image: docker.elastic.co/kibana/kibana:7.17.4
+    container_name: kibana-2
+    ports:
+      - "5656:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - TZ=Europe/Madrid
+    depends_on:
+      - elasticsearch
+    networks:
+      - poc2
+
+  mysql-2:
+    image: mysql
+    container_name: bank-db-2
+    ports:
+      - "3333:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=bank
+    volumes:
+      - ./volumes/poc2/mysql:/var/lib/mysql
+    networks:
+      - poc2
+
+  redis-2:
+    image: redis
+    container_name: bank-redis-2
+    ports:
+      - "6363:6379"
+    volumes:
+      - ./volumes/poc2/redis:/data
+    networks:
+      - poc2
+
+networks:
+  poc2:

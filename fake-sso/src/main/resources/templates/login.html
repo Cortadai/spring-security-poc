@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Login page</title>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            background-color: white;
+            padding: 2rem 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 320px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+            color: #555;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="submit"] {
+            width: 100%;
+            padding: 0.6rem;
+            margin-top: 0.3rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        input[type="submit"] {
+            background-color: #1976d2;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            margin-top: 1.5rem;
+            transition: background-color 0.2s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #1565c0;
+        }
+
+        .error {
+            color: #d32f2f;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h1>SSO Login</h1>
+
+    <p th:if="${loginError}" class="error">Wrong user or password</p>
+
+    <form th:action="@{/login.html}" method="post">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autofocus="autofocus" />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" />
+
+        <input type="hidden" name="idAplicacion" value="bank-app" />
+
+        <input type="submit" value="Log in" />
+    </form>
+
+    <div class="footer">Fake SSO for PoC 2</div>
+</div>
+</body>
+</html>
