@@ -1,0 +1,13 @@
+.welcome-msg {
+  margin-top: 100px;
+}
+
+.welcome-msg h1 {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.welcome-msg p {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
