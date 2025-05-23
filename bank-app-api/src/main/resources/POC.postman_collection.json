@@ -1,0 +1,447 @@
+{
+	"info": {
+		"_postman_id": "7124d57a-7fec-4e16-881b-dadff996d4a6",
+		"name": "POC",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "809735"
+	},
+	"item": [
+		{
+			"name": "Bank",
+			"item": [
+				{
+					"name": "authenticated with basic",
+					"item": [
+						{
+							"name": "user",
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "username",
+											"value": "alan@turing.com",
+											"type": "string"
+										},
+										{
+											"key": "password",
+											"value": "Alan@Bank12345",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/user",
+									"path": [
+										"user"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "authenticated with token",
+					"item": [
+						{
+							"name": "myAccount",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/myAccount?id=1",
+									"path": [
+										"myAccount"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "myBalance",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/myBalance?id=1",
+									"path": [
+										"myBalance"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "myCards",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/myCards?id=1",
+									"path": [
+										"myCards"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "myLoans",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/myLoans?id=1",
+									"path": [
+										"myLoans"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"exec": [
+									"pm.request.headers.add({\r",
+									"    key: 'Authorization',\r",
+									"    value: pm.collectionVariables.get(\"accessToken\") || \"eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYW5rIiwic3ViIjoiSldUIFRva2VuIiwidXNlcm5hbWUiOiJhbGFuQHR1cmluZy5jb20iLCJhdXRob3JpdGllcyI6IlJPTEVfQURNSU4sUk9MRV9VU0VSIiwiaWF0IjoxNzQ2OTUxNTYzLCJleHAiOjE3NDY5ODE1NjN9.tQb_KVezrwQNYIMy2YPtVwGg4G9jPxXOfAPRCj9k-Xc\"\r",
+									"});"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"packages": {},
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "public",
+					"item": [
+						{
+							"name": "register",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Alan Turing\",\r\n    \"email\":\"alan@turing.com\",\r\n    \"mobileNumber\": \"662581479\",\r\n    \"password\": \"oxapUJ3OpEECJB\",\r\n    \"role\": \"user\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "/register",
+									"path": [
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "apiLogin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();\r",
+											"\r",
+											"if (response.accessToken && response.refreshToken) {\r",
+											"    pm.collectionVariables.set(\"accessToken\", response.accessToken);\r",
+											"    pm.collectionVariables.set(\"refreshToken\", response.refreshToken);\r",
+											"\r",
+											"    console.log(\"Access Token guardado como 'accessToken':\", response.accessToken);\r",
+											"    console.log(\"Refresh Token guardado como 'refreshToken':\", response.refreshToken);\r",
+											"} else {\r",
+											"    console.warn(\"No se encontraron accessToken o refreshToken en la respuesta.\");\r",
+											"}\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\":\"alan@turing.com\",\r\n    \"password\":\"Alan@Bank12345\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "/apiLogin",
+									"path": [
+										"apiLogin"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "apiLogout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.request.headers.add({\r",
+											"    key: 'Authorization',\r",
+											"    value: pm.collectionVariables.get(\"accessToken\") || \"eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYW5rIiwic3ViIjoiSldUIFRva2VuIiwidXNlcm5hbWUiOiJhbGFuQHR1cmluZy5jb20iLCJhdXRob3JpdGllcyI6IlJPTEVfQURNSU4sUk9MRV9VU0VSIiwiaWF0IjoxNzQ2OTUxNTYzLCJleHAiOjE3NDY5ODE1NjN9.tQb_KVezrwQNYIMy2YPtVwGg4G9jPxXOfAPRCj9k-Xc\"\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "/apiLogout",
+									"path": [
+										"apiLogout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "refresh",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let response = pm.response.json();\r",
+											"\r",
+											"if (response.accessToken && response.refreshToken) {\r",
+											"    pm.collectionVariables.set(\"accessToken\", response.accessToken);\r",
+											"    pm.collectionVariables.set(\"refreshToken\", response.refreshToken);\r",
+											"\r",
+											"    console.log(\"Access Token guardado como 'accessToken':\", response.accessToken);\r",
+											"    console.log(\"Refresh Token guardado como 'refreshToken':\", response.refreshToken);\r",
+											"} else {\r",
+											"    console.warn(\"No se encontraron accessToken o refreshToken en la respuesta.\");\r",
+											"}\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.request.headers.add({\r",
+											"    key: 'Authorization',\r",
+											"    value: pm.collectionVariables.get(\"accessToken\") || \"eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYW5rIiwic3ViIjoiSldUIFRva2VuIiwidXNlcm5hbWUiOiJhbGFuQHR1cmluZy5jb20iLCJhdXRob3JpdGllcyI6IlJPTEVfQURNSU4sUk9MRV9VU0VSIiwiaWF0IjoxNzQ2OTUxNTYzLCJleHAiOjE3NDY5ODE1NjN9.tQb_KVezrwQNYIMy2YPtVwGg4G9jPxXOfAPRCj9k-Xc\"\r",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"refreshToken\":\"{{refreshToken}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "/refresh",
+									"path": [
+										"refresh"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "contact",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "[\r\n    {\r\n        \"contactName\": \"Test\",\r\n        \"contactEmail\": \"matias@humilde.com\",\r\n        \"subject\": \"Yo tengo el viper\",\r\n        \"message\": \"facilmente\"\r\n    }\r\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "/contact",
+									"path": [
+										"contact"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "notices",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "/notices",
+									"path": [
+										"notices"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"pm.request.url.protocol=\"http\";\r",
+							"pm.request.url.host=\"localhost\";\r",
+							"pm.request.url.port=\"8080\";"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "accessToken",
+			"value": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJCYW5rIiwic3ViIjoiSldUIFRva2VuIiwidXNlcm5hbWUiOiJhbGFuQHR1cmluZy5jb20iLCJhdXRob3JpdGllcyI6IlJPTEVfQURNSU4sUk9MRV9VU0VSIiwiaWF0IjoxNzQ2OTUxNTYzLCJleHAiOjE3NDY5ODE1NjN9.tQb_KVezrwQNYIMy2YPtVwGg4G9jPxXOfAPRCj9k-Xc",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJlbnRlbGd5LmNvbSIsInN1YiI6ImFsYW5AdHVyaW5nLmNvbSIsImlhdCI6MTc0Njk4NTM0Niwic2NvcGUiOiJyZWZyZXNoIiwiZXhwIjoxNzQ3NTkwMTQ2fQ.Gb1dGyyCgQA26Is4HByjSg_i-Y9WJwMk-IL9amFzidM",
+			"type": "string"
+		}
+	]
+}

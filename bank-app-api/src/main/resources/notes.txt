@@ -1,0 +1,2 @@
+docker run -p 3306:3306 --name bank-db -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=bank -d mysql
+docker run -p 6379:6379 --name bank-redis -d redis
