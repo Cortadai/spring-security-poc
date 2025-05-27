@@ -1,0 +1,63 @@
+PUT _index_template/logstash_logs_message_template
+{
+  "index_patterns": ["logs-*"],
+  "data_stream": {},
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    },
+    "mappings": {
+      "properties": {
+        "message": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 2048
+            }
+          }
+        },
+        "@timestamp": {
+          "type": "date"
+        },
+        "@version": {
+          "type": "keyword"
+        },
+        "app": {
+          "type": "keyword"
+        },
+        "data_stream.dataset": {
+          "type": "keyword"
+        },
+        "data_stream.namespace": {
+          "type": "keyword"
+        },
+        "data_stream.type": {
+          "type": "keyword"
+        },
+        "level": {
+          "type": "keyword"
+        },
+        "level_value": {
+          "type": "long"
+        },
+        "log_host": {
+          "type": "keyword"
+        },
+        "logger_name": {
+          "type": "keyword"
+        },
+        "path": {
+          "type": "keyword"
+        },
+        "thread_name": {
+          "type": "keyword"
+        }
+      }
+    }
+  },
+  "priority": 500,
+  "composed_of": [],
+  "version": 1
+}

@@ -1,0 +1,41 @@
+
+@startuml
+actor Usuario
+participant "Fake SSO" as SSO
+participant "Middleware" as MW
+participant "SPA (Angular)" as SPA
+participant "Backend SPA" as BE
+
+== Inicio de sesión desde SSO ==
+Usuario -> SSO : Accede a /login?idaplicacion=bankapp
+SSO -> MW : POST /loginBegin\n(COOKIE SSO, idaplicacion, X-Cert-Auth)
+MW --> SSO : Set-Cookie: Sessiontmp
+SSO -> Usuario : Redirección a https://spa.tudominio.es
+
+== Carga inicial de la SPA ==
+Usuario -> SPA : Solicitud inicial con cookie Sessiontmp
+SPA -> BE : POST /loginEnd
+BE -> MW : POST /loginEnd\n(Sessiontmp, X-Cert-Auth)
+MW --> BE : Cookies:\nSession-{idsession}, Acceso-{idsession}\nHeader: X-Idsession
+BE --> SPA : Cookies + X-Idsession
+
+== Navegación normal en la SPA ==
+Usuario -> SPA : Interacción (por ejemplo ver cuentas)
+SPA -> BE : GET /cuentas\nCookies + X-Idsession + X-token-pro
+BE -> BE : Valida JWT de acceso
+BE --> SPA : Datos solicitados
+
+== Refresco automático ==
+SPA -> BE : Interceptor detecta expiración
+BE -> MW : POST /refresco\nCookies + X-Idsession + X-Cert-Auth
+MW --> BE : Nueva cookie Acceso-{idsession}
+BE --> SPA : Set-Cookie: Acceso-{idsession} actualizado
+
+== Logout ==
+Usuario -> SPA : Cierra sesión
+SPA -> BE : POST /logoff
+BE -> MW : POST /logoff\nCookies + X-Idsession + X-Cert-Auth
+MW --> BE : Set-Cookie Max-Age=0 para Session y Acceso
+BE --> SPA : Cookies eliminadas
+
+@enduml
