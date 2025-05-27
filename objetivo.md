@@ -42,8 +42,13 @@ sequenceDiagram
     SSO->>Browser: Redirect to SPA
     SPA->>Backend SPA: POST /login2EndSPA
     Backend SPA->>Middleware Seguridad: /login2End (con Sessiontmp)
-    Middleware Seguridad->>Browser: Set-Cookie: Session-{idsession}, Proteccion-{idsession}
-    Middleware Seguridad->>SPA: Header Authorization con token JWT de acceso encriptado
+    Middleware Seguridad->>Backend SPA: Set-Cookie: Session-{idsession}, Proteccion-{idsession}, Authorization con token JWT de acceso encriptado
+    Backend SPA->>Browser: Set-Cookie: Session-{idsession}, Proteccion-{idsession}, Header Authorization con token JWT de acceso encriptado
+    SPA->>Backend SPA: llamadas negocio (cookies y header Authorization enviados automáticamente)
+    Backend SPA->>Middleware Seguridad: validar cookies y header Authorization con token JWT de acceso encriptado
+    Middleware Seguridad->>Backend SPA: acceso concedido
+    Backend SPA->>SPA: retorno negocio
+    SPA->>Browser: mostrar componente en pantalla
 ```
 
 ---
