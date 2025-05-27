@@ -36,8 +36,13 @@ sequenceDiagram
     Browser->>SPA: Load App
     SPA->>Backend SPA: POST /login1EndSPA
     Backend SPA->>Middleware Seguridad: /login1End (con Sessiontmp)
-    Middleware Seguridad->>Browser: Set-Cookie: Session-{idsession}, Acceso-{idsession}, delete Sessiontmp
+    Middleware Seguridad->>Backend SPA: Set-Cookie: Session-{idsession}, Acceso-{idsession}, delete Sessiontmp
+    Backend SPA->>Browser: Set-Cookie: Session-{idsession}, Acceso-{idsession}
     SPA->>Backend SPA: llamadas negocio (cookies enviadas automáticamente)
+    Backend SPA->>Middleware Seguridad: validar cookies
+    Middleware Seguridad->>Backend SPA: acceso concedido
+    Backend SPA->>SPA: retorno negocio
+    SPA->>Browser: mostrar componente en pantalla
 ```
 
 ---
